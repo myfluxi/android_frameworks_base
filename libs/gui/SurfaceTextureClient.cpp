@@ -279,11 +279,7 @@ int SurfaceTextureClient::query(int what, int* value) const {
 #ifdef QCOM_HARDWARE
                 return mSurfaceTexture->query(what, value);
 #else
-                    *value = mTransformHint;
-                }
-#else
                 *value = mTransformHint;
-#endif
                 return NO_ERROR;
 #endif
         }
