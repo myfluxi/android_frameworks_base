@@ -9278,6 +9278,7 @@ package android.hardware {
     method public static android.hardware.Camera open();
     method public final void reconnect() throws java.io.IOException;
     method public final void release();
+    method public static int setCameraScreen(int);
     method public final void setDisplayOrientation(int);
     method public final void setErrorCallback(android.hardware.Camera.ErrorCallback);
     method public final void setFaceDetectionListener(android.hardware.Camera.FaceDetectionListener);
