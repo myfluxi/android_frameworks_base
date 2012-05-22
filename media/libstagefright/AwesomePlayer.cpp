@@ -594,6 +594,8 @@ void AwesomePlayer::reset_l() {
         mStats.mBitrate = -1;
         mStats.mAudioTrackIndex = -1;
         mStats.mVideoTrackIndex = -1;
+        mStats.mNumVideoFramesDecoded = 0;
+        mStats.mNumVideoFramesDropped = 0;
         mStats.mVideoWidth = -1;
         mStats.mVideoHeight = -1;
         mStats.mFlags = 0;
