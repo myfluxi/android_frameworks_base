@@ -29,7 +29,16 @@
 #include <media/AudioSystem.h>
 #include <media/Metadata.h>
 
+#include "mediaplayerinfo.h"
 namespace android {
+
+/* add by Gary. start {{----------------------------------- */
+/**
+*  screen name
+*/
+#define MASTER_SCREEN        0
+#define SLAVE_SCREEN         1
+/* add by Gary. end   -----------------------------------}} */
 
 class Parcel;
 class Surface;
@@ -59,9 +68,6 @@ enum player_states {
 	PLAYER_STATE_SUSPEND,
 	PLAYER_STATE_RESUME,
 };
-
-#define MASTER_SCREEN        0
-#define SLAVE_SCREEN         1
 
 #define DEFAULT_AUDIOSINK_BUFFERCOUNT 4
 #define DEFAULT_AUDIOSINK_BUFFERSIZE 1200
@@ -156,7 +162,7 @@ public:
     virtual status_t    setParameter(int key, const Parcel &request) = 0;
     virtual status_t    getParameter(int key, Parcel *reply) = 0;
 
-  /* add by Gary. start {{----------------------------------- */
+    /* add by Gary. start {{----------------------------------- */
     virtual status_t    setScreen(int screen){
         return OK;
     };

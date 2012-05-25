@@ -232,7 +232,7 @@ status_t StagefrightRecorder::setVideoEncoder(video_encoder ve) {
     }
 
     if (ve == VIDEO_ENCODER_DEFAULT) {
-        mVideoEncoder = VIDEO_ENCODER_H263;
+        mVideoEncoder = VIDEO_ENCODER_H264;
     } else {
         mVideoEncoder = ve;
     }
@@ -804,6 +804,8 @@ status_t StagefrightRecorder::prepare() {
 
 	if (mbHWEncoder)
 	{
+		mpCedarXRecorder->setPreviewSurface(mPreviewSurface);
+		
 		error = mpCedarXRecorder->setCamera(mCamera, mCameraProxy);
 		if (error != OK)
 		{
@@ -837,9 +839,11 @@ status_t StagefrightRecorder::prepare() {
 		mpCedarXRecorder->setParamMaxFileSizeBytes(mMaxFileSizeBytes);
 		mpCedarXRecorder->setOutputFile(mOutputFd);
 		mpCedarXRecorder->setOutputFormat(mOutputFormat);
-		
-		mpCedarXRecorder->setPreviewSurface(mPreviewSurface);
 
+		// location
+		mpCedarXRecorder->setParamGeoDataLatitude(mLatitudex10000);
+		mpCedarXRecorder->setParamGeoDataLongitude(mLongitudex10000);
+		
 		// lapse
 		mpCedarXRecorder->setParamTimeLapseEnable(mCaptureTimeLapse);
 		mpCedarXRecorder->setParamTimeBetweenTimeLapseFrameCapture(mTimeBetweenTimeLapseFrameCaptureUs);
@@ -858,14 +862,9 @@ ERROR:
 status_t StagefrightRecorder::start() {
 	F_LOG;
     CHECK(mOutputFd >= 0);
-
-    if (mWriter != NULL) {
-        LOGE("File writer is not avaialble");
-        return UNKNOWN_ERROR;
-    }
-
+	
     status_t status = OK;
-
+	
 	if (mbHWEncoder)
 	{
 		status = mpCedarXRecorder->start();
@@ -876,6 +875,7 @@ status_t StagefrightRecorder::start() {
         LOGE("File writer is not avaialble");
         return UNKNOWN_ERROR;
     }
+
     switch (mOutputFormat) {
         case OUTPUT_FORMAT_DEFAULT:
         case OUTPUT_FORMAT_THREE_GPP:

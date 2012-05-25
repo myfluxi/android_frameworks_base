@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <limits.h>
+#include <cutils/properties.h>
+
 
 #define INDENT "  "
 #define INDENT2 "    "
@@ -149,7 +151,7 @@ namespace android
         int 				err;
         hw_module_t* 		module;
         status_t 			result;
-	    
+		char property[PROPERTY_VALUE_MAX];
 	    err = hw_get_module(DISPLAY_HARDWARE_MODULE_ID, (hw_module_t const**)&module);
 	    if (err == 0) 
 	    {
@@ -164,14 +166,32 @@ namespace android
             LOGD("hw_get display module Failed!\n");
         }
 	    
-        mThread = new DisplayDispatcherThread(mDevice);
-        result = mThread->run("DisplayDispatcheR", PRIORITY_HIGHEST);
-	    if (result) 
-	    {
-	        LOGE("Could not start DisplayDispatcheR thread due to error %d.", result);
-	
-	        mThread->requestExit();
+	   if (property_get("ro.display.switch", property, NULL) > 0) 
+       {
+	        if (atoi(property) == 1) 
+	        {
+	            LOGW("display dispatcher enabled");
+	            mThread = new DisplayDispatcherThread(mDevice);
+		        result = mThread->run("DisplayDispatcheR", PRIORITY_HIGHEST);
+			    if (result) 
+			    {
+			        LOGE("Could not start DisplayDispatcheR thread due to error %d.", result);
+			
+			        mThread->requestExit();
+			    }
+	        }
+	        else
+	        {
+	            LOGW("display dispatcher disable");
+	        }
 	    }
+	    else
+	    {
+	        LOGW("display dispatcher disable");
+	    }
+		    //LOGD("DisplayDispatcher createing err2 = %d!\n",err);
+
+        
     }
 
     DisplayDispatcher::~DisplayDispatcher()

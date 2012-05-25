@@ -44,6 +44,7 @@ enum media_event_type {
     MEDIA_TIMED_TEXT        = 99,
     MEDIA_ERROR             = 100,
     MEDIA_INFO              = 200,
+    MEDIA_INFO_SRC_3D_MODE  = 1024,
 };
 
 // Generic error codes for the media player framework.  Errors are fatal, the
@@ -118,8 +119,14 @@ enum media_info_type {
     MEDIA_INFO_METADATA_UPDATE = 802,
 };
 
+
+/* add by Gary. start {{----------------------------------- */
+/**
+*  screen name
+*/
 #define MASTER_SCREEN        0
 #define SLAVE_SCREEN         1
+/* add by Gary. end   -----------------------------------}} */
 
 enum media_player_states {
     MEDIA_PLAYER_STATE_ERROR        = 0,
@@ -155,7 +162,11 @@ class MediaPlayerListener: virtual public RefBase
 {
 public:
     virtual void notify(int msg, int ext1, int ext2, const Parcel *obj) = 0;
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-10-9 8:54:30 */
+    /* add callback for parsing 3d source */
     virtual int  parse3dFile(int type) = 0;
+    /* add by Gary. end   -----------------------------------}} */
 };
 
 class MediaPlayer : public BnMediaPlayerClient,
@@ -314,6 +325,8 @@ private:
     int                         mSubDelay;
     int                         mSubFontSize;
     char                        mSubCharset[MEDIAPLAYER_NAME_LEN_MAX];
+	int                         mSubIndex;
+    int                         mTrackIndex;
     /* add by Gary. end   -----------------------------------}} */
 };
 

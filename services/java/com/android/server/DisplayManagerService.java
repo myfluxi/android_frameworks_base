@@ -124,6 +124,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
+import android.provider.Settings;
+import android.os.SystemProperties;
+
 
 /**
  * Keep track of all those .apks everywhere.
@@ -352,15 +355,17 @@ public class DisplayManagerService extends IDisplayManager.Stub
 		nativeInit();
 		
         // set initial hotplug status
-        update_hotplug();
-
-		if (sThreadStarted == false) 
+ 		if(SystemProperties.get("ro.display.switch").equals("1"))
 		{
-            sThread = new DisplayThread(mContext,this,mPM);
-            sThread.start();
-            sThreadStarted = true;
-        }
+	        update_hotplug();
 
+			if (sThreadStarted == false) 
+			{
+	            sThread = new DisplayThread(mContext,this,mPM);
+	            sThread.start();
+	            sThreadStarted = true;
+	        }
+ 		}
 		mWindowManager	= IWindowManager.Stub.asInterface(ServiceManager.getService(Context.WINDOW_SERVICE));
 		Log.d(TAG,"getWindowManager Starting.......!");
     }

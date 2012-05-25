@@ -82,22 +82,8 @@ DisplayHardware::DisplayHardware(
     init(dpy);
     mDisplayDispatcher  = NULL;
     
-    if (property_get("ro.display.switch", property, NULL) > 0) 
-    {
-        if (atoi(property) == 1) 
-        {
-            LOGW("display dispatcher enabled");
-            mDisplayDispatcher = new DisplayDispatcher();
-        }
-        else
-        {
-            LOGW("display dispatcher disable");
-        }
-    }
-    else
-    {
-        LOGW("display dispatcher disable");
-    }
+    mDisplayDispatcher = new DisplayDispatcher();
+
 }
 
 DisplayHardware::~DisplayHardware()
@@ -181,6 +167,7 @@ void DisplayHardware::init(uint32_t dpy)
     // initialize EGL
     EGLint attribs[] = {
             EGL_SURFACE_TYPE,       EGL_WINDOW_BIT,
+            EGL_SAMPLES,            4,
             EGL_NONE,               0,
             EGL_NONE
     };

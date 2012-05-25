@@ -72,26 +72,35 @@
 #include "SimpleMediaFormatProbe.h"
 
 #include <OMX.h>
-#define PROP_SCREEN_KEY             "media.stagefright.screen"
+/* add by Gary. start {{----------------------------------- */
+/* save the screen info */
+#define PROP_SCREEN_KEY             "mediasw.sft.screen"
 #define PROP_MASTER_SCREEN          "master"
 #define PROP_SLAVE_SCREEN           "slave"
 #define PROP_SCREEN_DEFAULT_VALUE   PROP_MASTER_SCREEN
-#define PROP_VPP_GATE_KEY           "media.stagefright.vpp_gate"
+/* add by Gary. end   -----------------------------------}} */
+
+/* add by Gary. start {{----------------------------------- */
+/* 2011-11-14 */
+/* support adjusting colors while playing video */
+#define PROP_VPP_GATE_KEY           "mediasw.sft.vpp_gate"
 #define PROP_ENABLE_VPP             "enable vpp"
 #define PROP_DISABLE_VPP            "disable vpp"
 #define PROP_VPP_GATE_DEFAULT_VALUE PROP_DISABLE_VPP
 
-#define PROP_LUMA_SHARP_KEY           "media.stagefright.luma_sharp"
+#define PROP_LUMA_SHARP_KEY           "mediasw.sft.luma_sharp"
 #define PROP_LUMA_SHARP_DEFAULT_VALUE PROP_DISABLE_VPP
 
-#define PROP_CHROMA_SHARP_KEY           "media.stagefright.chroma_sharp"
+#define PROP_CHROMA_SHARP_KEY           "mediasw.sft.chroma_sharp"
 #define PROP_CHROMA_SHARP_DEFAULT_VALUE PROP_DISABLE_VPP
 
-#define PROP_WHITE_EXTEND_KEY           "media.stagefright.white_extend"
+#define PROP_WHITE_EXTEND_KEY           "mediasw.sft.white_extend"
 #define PROP_WHITE_EXTEND_DEFAULT_VALUE PROP_DISABLE_VPP
 
-#define PROP_BLACK_EXTEND_KEY           "media.stagefright.black_extend"
+#define PROP_BLACK_EXTEND_KEY           "mediasw.sft.black_extend"
 #define PROP_BLACK_EXTEND_DEFAULT_VALUE PROP_DISABLE_VPP
+
+/* add by Gary. end   -----------------------------------}} */
 
 namespace {
 using android::media::Metadata;
@@ -217,14 +226,18 @@ typedef struct {
     const player_type playertype;
 } extmap;
 extmap FILE_EXTS [] =  {
-        {".ogg", STAGEFRIGHT_PLAYER},
-        {".mp3", STAGEFRIGHT_PLAYER},
-        {".wav", STAGEFRIGHT_PLAYER},
-        {".amr", STAGEFRIGHT_PLAYER},
-        {".flac", STAGEFRIGHT_PLAYER},
-        {".m4a", STAGEFRIGHT_PLAYER},
-        //{".3gp", STAGEFRIGHT_PLAYER},
-        //{".aac", STAGEFRIGHT_PLAYER},
+		{".ogg", STAGEFRIGHT_PLAYER},
+		{".mp3", STAGEFRIGHT_PLAYER},
+		{".wav", STAGEFRIGHT_PLAYER},
+		{".amr", STAGEFRIGHT_PLAYER},
+		{".flac", STAGEFRIGHT_PLAYER},
+		{".m4a", STAGEFRIGHT_PLAYER},
+		{".out", STAGEFRIGHT_PLAYER},
+		{".mp3?nolength", STAGEFRIGHT_PLAYER},
+		{".ogg?nolength", STAGEFRIGHT_PLAYER},
+		//{".3gp", STAGEFRIGHT_PLAYER},
+
+		//{".aac", STAGEFRIGHT_PLAYER},
         {".mid", SONIVOX_PLAYER},
         {".midi", SONIVOX_PLAYER},
         {".smf", SONIVOX_PLAYER},
@@ -264,6 +277,7 @@ MediaPlayerService::MediaPlayerService()
     }
     // speaker is on by default
     mBatteryAudio.deviceOn[SPEAKER] = 1;
+    /* add by Gary. start {{----------------------------------- */
     char prop_value[PROPERTY_VALUE_MAX];
     property_get(PROP_SCREEN_KEY, prop_value, PROP_SCREEN_DEFAULT_VALUE);
     LOGV("prop_value = %s", prop_value);
@@ -318,6 +332,7 @@ MediaPlayerService::MediaPlayerService()
         int_value = 0;
     int_value %= 5;
     mBlackExtend = int_value;
+    /* add by Gary. end   -----------------------------------}} */
 }
 
 MediaPlayerService::~MediaPlayerService()
@@ -360,12 +375,20 @@ sp<IMediaPlayer> MediaPlayerService::create(pid_t pid, const sp<IMediaPlayerClie
 
     LOGV("Create new client(%d) from pid %d, uid %d, ", connId, pid,
          IPCThreadState::self()->getCallingUid());
+    /* add by Gary. start {{----------------------------------- */
     c->setScreen(mScreen);
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-11-14 */
+    /* support adjusting colors while playing video */
     c->setVppGate(mVppGate);
     c->setLumaSharp(mLumaSharp);
     c->setChromaSharp(mChromaSharp);
     c->setWhiteExtend(mWhiteExtend);
     c->setBlackExtend(mBlackExtend);
+    /* add by Gary. end   -----------------------------------}} */
+    
 
     wp<Client> w = c;
     {
@@ -586,7 +609,12 @@ MediaPlayerService::Client::Client(
     mAudioSessionId = audioSessionId;
     mUID = uid;
 
+    /* add by Gary. start {{----------------------------------- */
     mHasSurface = 0;
+    /* add by Gary. end   -----------------------------------}} */
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-9-28 16:28:24 */
+    /* save properties before creating the real player */
     mSubGate = true;
     mSubColor = 0xFFFFFFFF;
     mSubFrameColor = 0xFF000000;
@@ -594,10 +622,17 @@ MediaPlayerService::Client::Client(
     mSubDelay = 0;
     mSubFontSize = 24;
     strcpy(mSubCharset, CHARSET_GBK);
+	mSubIndex = 0;
+    mTrackIndex = 0;
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-11-14 */
+    /* support scale mode */
     mEnableScaleMode = false;
     mScaleWidth = 0;
     mScaleHeight = 0;
-
+    /* add by Gary. end   -----------------------------------}} */
 #if CALLBACK_ANTAGONIZER
     LOGD("create Antagonizer");
     mAntagonizer = new Antagonizer(notify, this);
@@ -645,20 +680,17 @@ void MediaPlayerService::Client::disconnect()
 }
 
 static player_type getDefaultPlayerType() {
-    //return STAGEFRIGHT_PLAYER;
     return CEDARX_PLAYER;
+    //return STAGEFRIGHT_PLAYER;
 }
 
-player_type getPlayerType(int fd, int64_t offset, int64_t length)
+player_type getPlayerType(int fd, int64_t offset, int64_t length, bool check_cedar)
 {
     int r_size;
     int file_format;
     char buf[2048];
     lseek(fd, offset, SEEK_SET);
     r_size = read(fd, buf, sizeof(buf));
-
-    lseek(fd, offset, SEEK_SET);
-    read(fd, buf, sizeof(buf));
     lseek(fd, offset, SEEK_SET);
 
     long ident = *((long*)buf);
@@ -684,15 +716,22 @@ player_type getPlayerType(int fd, int64_t offset, int64_t length)
         EAS_Shutdown(easdata);
     }
 
-        file_format = audio_format_detect((unsigned char*)buf, r_size);
-    LOGV("getPlayerType: %d",file_format);
-    if(file_format < MEDIA_FORMAT_STAGEFRIGHT_MAX && file_format > MEDIA_FORMAT_STAGEFRIGHT_MIN){
-    	LOGV("use STAGEFRIGHT_PLAYER");
-    	return STAGEFRIGHT_PLAYER;
-    }
-    else if(file_format < MEDIA_FORMAT_CEDARA_MAX && file_format > MEDIA_FORMAT_CEDARA_MIN){
-    	LOGV("use CEDARA_PLAYER");
-    	return CEDARA_PLAYER;
+    if (check_cedar) {
+		file_format = audio_format_detect((unsigned char*)buf, r_size);
+		LOGV("getPlayerType: %d",file_format);
+
+		if(file_format < MEDIA_FORMAT_STAGEFRIGHT_MAX && file_format > MEDIA_FORMAT_STAGEFRIGHT_MIN){
+			LOGV("use STAGEFRIGHT_PLAYER");
+			return STAGEFRIGHT_PLAYER;
+		}
+		else if(file_format < MEDIA_FORMAT_CEDARA_MAX && file_format > MEDIA_FORMAT_CEDARA_MIN){
+			LOGV("use CEDARA_PLAYER");
+			return CEDARA_PLAYER;
+		}
+		else if(file_format < MEDIA_FORMAT_CEDARX_MAX && file_format > MEDIA_FORMAT_CEDARX_MIN){
+			LOGV("use CEDARX_PLAYER");
+			return CEDARX_PLAYER;
+		}
     }
 
     return STAGEFRIGHT_PLAYER; //getDefaultPlayerType();
@@ -841,9 +880,10 @@ status_t MediaPlayerService::Client::setDataSource(
             mAudioOutput = new AudioOutput(mAudioSessionId);
             static_cast<MediaPlayerInterface*>(p.get())->setAudioSink(mAudioOutput);
         }
-
-
-
+        
+        /* add by Gary. start {{----------------------------------- */
+        /* 2011-9-28 16:28:24 */
+        /* save properties before creating the real player */
         p->setSubGate(mSubGate);
         p->setSubColor(mSubColor);
         p->setSubFrameColor(mSubFrameColor);
@@ -851,17 +891,25 @@ status_t MediaPlayerService::Client::setDataSource(
         p->setSubDelay(mSubDelay);
         p->setSubFontSize(mSubFontSize);
         p->setSubCharset(mSubCharset);
-
-
-
+		p->switchSub(mSubIndex);
+		p->switchTrack(mTrackIndex);
+        /* add by Gary. end   -----------------------------------}} */
+        
+        /* add by Gary. start {{----------------------------------- */
+        /* 2011-10-9 8:54:30 */
+        /* add callback for parsing 3d source */
         p->setParse3dFileCallback(this, parse3dFile);
-
-
-
+        /* add by Gary. end   -----------------------------------}} */
+        
+        /* add by Gary. start {{----------------------------------- */
+        /* 2011-11-14 */
+        /* support scale mode */
         p->enableScaleMode(mEnableScaleMode, mScaleWidth, mScaleHeight);
+        /* add by Gary. end   -----------------------------------}} */
 
-
-
+        /* add by Gary. start {{----------------------------------- */
+        /* 2011-11-30 */
+        /* fix the bug about setting global attibute */
         LOGD("MediaPlayerService::Client::setDataSource() : screen = %d", mScreen);
         p->setScreen(mScreen);
         p->setVppGate(mVppGate);
@@ -869,6 +917,7 @@ status_t MediaPlayerService::Client::setDataSource(
         p->setChromaSharp(mChromaSharp);
         p->setWhiteExtend(mWhiteExtend);
         p->setBlackExtend(mBlackExtend);
+        /* add by Gary. end   -----------------------------------}} */
 
         // now set data source
         LOGV(" setDataSource");
@@ -908,7 +957,7 @@ status_t MediaPlayerService::Client::setDataSource(int fd, int64_t offset, int64
         LOGV("calculated length = %lld", length);
     }
 
-    player_type playerType = getPlayerType(fd, offset, length);
+    player_type playerType = getPlayerType(fd, offset, length, true);
     LOGV("player type = %d", playerType);
 
     // create the right type of player
@@ -940,8 +989,9 @@ status_t MediaPlayerService::Client::setDataSource(
         mAudioOutput = new AudioOutput(mAudioSessionId);
         static_cast<MediaPlayerInterface*>(p.get())->setAudioSink(mAudioOutput);
     }
-
-
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-9-28 16:28:24 */
+    /* save properties before creating the real player */
     p->setSubGate(mSubGate);
     p->setSubColor(mSubColor);
     p->setSubFrameColor(mSubFrameColor);
@@ -949,9 +999,26 @@ status_t MediaPlayerService::Client::setDataSource(
     p->setSubDelay(mSubDelay);
     p->setSubFontSize(mSubFontSize);
     p->setSubCharset(mSubCharset);
+	p->switchSub(mSubIndex);
+	p->switchTrack(mTrackIndex);
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-10-9 8:54:30 */
+    /* add callback for parsing 3d source */
     p->setParse3dFileCallback(this, parse3dFile);
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-11-14 */
+    /* support scale mode */
     p->enableScaleMode(mEnableScaleMode, mScaleWidth, mScaleHeight);
-    LOGD("MediaPlayerService::Client::setDataSource() : screen = %d", mScreen);
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-11-30 */
+    /* fix the bug about setting global attibute */
+	LOGD("MediaPlayerService::Client::setDataSource() : screen = %d", mScreen);
     p->setScreen(mScreen);
     p->setVppGate(mVppGate);
     p->setLumaSharp(mLumaSharp);
@@ -1020,7 +1087,10 @@ status_t MediaPlayerService::Client::setVideoSurfaceTexture(
     // on the disconnected ANW, which may result in errors.
     status_t err = p->setVideoSurfaceTexture(surfaceTexture);
 
+    /* add by Gary. start {{----------------------------------- */
     mHasSurface = 1;
+    /* add by Gary. end   -----------------------------------}} */
+
     disconnectNativeWindow();
 
     mConnectedWindow = anw;
@@ -1361,6 +1431,7 @@ int MediaPlayerService::Client::getCurSub()
 
 status_t MediaPlayerService::Client::switchSub(int index)
 {
+    mSubIndex = index;
     sp<MediaPlayerBase> p = getPlayer();
     if (p == 0) 
         return UNKNOWN_ERROR;
@@ -1497,6 +1568,7 @@ int MediaPlayerService::Client::getTrackCount()
 int MediaPlayerService::Client::getTrackList(MediaPlayer_TrackInfo *infoList, int count)
 {
     sp<MediaPlayerBase> p = getPlayer();
+
     if (p == 0) 
         return -1;
     return p->getTrackList((MediaPlayer_TrackInfo *)infoList, count);
@@ -1512,6 +1584,7 @@ int MediaPlayerService::Client::getCurTrack()
 
 status_t MediaPlayerService::Client::switchTrack(int index)
 {
+    mTrackIndex = index;
     sp<MediaPlayerBase> p = getPlayer();
     if (p == 0) 
         return UNKNOWN_ERROR;
@@ -1967,6 +2040,9 @@ sp<IMemory> MediaPlayerService::decode(const char* url, uint32_t *pSampleRate, i
     }
 
     player_type playerType = getPlayerType(url);
+    if (playerType == CEDARX_PLAYER || playerType == CEDARA_PLAYER) {
+    	playerType = STAGEFRIGHT_PLAYER;
+    }
     LOGV("player type = %d", playerType);
 
     // create the right type of player
@@ -2013,7 +2089,7 @@ sp<IMemory> MediaPlayerService::decode(int fd, int64_t offset, int64_t length, u
     sp<MemoryBase> mem;
     sp<MediaPlayerBase> player;
 
-    player_type playerType = getPlayerType(fd, offset, length);
+    player_type playerType = getPlayerType(fd, offset, length, false);
     LOGV("player type = %d", playerType);
 
     // create the right type of player

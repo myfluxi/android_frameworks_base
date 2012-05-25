@@ -17250,6 +17250,9 @@ package android.provider {
     field public static final java.lang.String INTENT_ACTION_VIDEO_CAMERA = "android.media.action.VIDEO_CAMERA";
     field public static final java.lang.String MEDIA_IGNORE_FILENAME = ".nomedia";
     field public static final java.lang.String MEDIA_SCANNER_VOLUME = "volume";
+    field public static final java.lang.String PLAYLIST_TYPE = "android.intent.extra.playListType";
+    field public static final java.lang.String PLAYLIST_TYPE_CUR_FOLDER = "curFolder";
+    field public static final java.lang.String PLAYLIST_TYPE_MEDIA_PROVIDER = "mediaProvider";
     field public static final java.lang.String UNKNOWN_STRING = "<unknown>";
   }
 

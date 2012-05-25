@@ -70,6 +70,9 @@ Layer::Layer(SurfaceFlinger* flinger,
 {
     mCurrentCrop.makeInvalid();
     glGenTextures(1, &mTextureName);
+    texture_srcw 	= 0;
+    texture_srch 	= 0;
+    texture_format 	= 0;
 #ifdef QCOM_HARDWARE
     updateLayerQcomFlags(LAYER_UPDATE_STATUS, true, mLayerQcomFlags);
 #endif
@@ -296,6 +299,12 @@ void Layer::setPerFrameData(hwc_layer_t* hwcl) {
 
 void Layer::onDraw(const Region& clip) const
 {
+    if(texture_format)
+    {
+        clearWithOpenGL(clip,0,0,0,0);
+    }
+    else
+    {
     if (CC_UNLIKELY(mActiveBuffer == 0)) {
         // the texture has not been created yet, this Layer has
         // in fact never been drawn into. This happens frequently with
@@ -399,11 +408,13 @@ void Layer::onDraw(const Region& clip) const
 
     glDisable(GL_TEXTURE_EXTERNAL_OES);
     glDisable(GL_TEXTURE_2D);
+
 #ifdef QCOM_HARDWARE
     if(needsDithering()) {
         glDisable(GL_DITHER);
     }
 #endif
+  }
 }
 
 // As documented in libhardware header, formats in the range
