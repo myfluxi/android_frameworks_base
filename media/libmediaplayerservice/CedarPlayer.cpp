@@ -172,7 +172,7 @@ status_t CedarPlayer::setScreen(int screen) {
 }
 
 int CedarPlayer::getMeidaPlayerState() {
-    LOGV("getMeidaPlayerState");
+    LOGV("getMediaPlayerState");
     return mPlayer->getMeidaPlayerState();
 }
 
