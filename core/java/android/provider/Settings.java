@@ -2141,6 +2141,13 @@ public final class Settings {
          */
         public static final String POINTER_SPEED = "pointer_speed";
 
+	/**
+	 * Select your preferred hdmi display resolution
+	 * @hide
+	 */
+
+	public static final String HDMI_RESOLUTION = "hdmi_resolution";
+
         /**
          * Use the Notification Power Widget? (Who wouldn't!)
          *
@@ -3471,6 +3478,17 @@ public final class Settings {
          * least-recently-used excess networks will be removed.
          */
         public static final String WIFI_NUM_OPEN_NETWORKS_KEPT = "wifi_num_open_networks_kept";
+        /**
+         * Ethernet related configurations
+         */
+        public static final String ETHERNET_ON      = "eth_on";
+        public static final String ETHERNET_MODE    = "eth_mode";
+        public static final String ETHERNET_IP      = "eth_ip";
+        public static final String ETHERNET_MASK    = "eth_netmask";
+        public static final String ETHERNET_DNS     = "eth_dns";
+        public static final String ETHERNET_ROUTE   = "eth_route";
+        public static final String ETHERNET_CONF    = "eth_conf";
+        public static final String ETHERNET_IFNAME  = "eth_ifname";
 
         /**
          * Whether the Wi-Fi should be on.  Only the Wi-Fi service should touch this.

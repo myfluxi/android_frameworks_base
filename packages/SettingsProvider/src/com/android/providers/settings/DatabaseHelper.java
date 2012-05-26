@@ -1398,6 +1398,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             loadIntegerSetting(stmt, Settings.System.POINTER_SPEED,
                     R.integer.def_pointer_speed);
 
+	    loadStringSetting(stmt, Settings.System.HDMI_RESOLUTION,
+                    R.string.def_hdmi_resolution);
+
         } finally {
             if (stmt != null) stmt.close();
         }
@@ -1486,6 +1489,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             loadBooleanSetting(stmt, Settings.Secure.WIFI_NETWORKS_AVAILABLE_NOTIFICATION_ON,
                     R.bool.def_networks_available_notification_on);
     
+            loadBooleanSetting(stmt, Settings.Secure.ETHERNET_ON,
+                    R.bool.def_ethernet_on);
+            loadBooleanSetting(stmt, Settings.Secure.ETHERNET_MODE,
+                    R.bool.def_ethernet_mode);
+
             String wifiWatchList = SystemProperties.get("ro.com.android.wifi-watchlist");
             if (!TextUtils.isEmpty(wifiWatchList)) {
                 loadSetting(stmt, Settings.Secure.WIFI_WATCHDOG_WATCH_LIST, wifiWatchList);
