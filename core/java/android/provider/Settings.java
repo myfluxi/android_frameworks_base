@@ -2441,6 +2441,13 @@ public final class Settings {
          */
         public static final String MENU_VISIBILITY = "menu_visibility";
 
+	/**
+	 * Show or hide volume control on tablet statusbar
+	 * @hide
+	 */
+
+	public static final String VOLUME_SYSBAR = "volume_sysbar";
+
         /**
          * custom carrier text to display
          * 
