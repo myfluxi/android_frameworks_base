@@ -145,6 +145,6 @@
     <!-- Default for Accelerometer coordinate -->
     <string name="def_accelerometer_coordinate">default</string>
     <!-- Default for Settings.System.VOLUME_SYSBAR -->
-    <integer name="def_volume_sysbar">0</integer>
+    <integer name="def_volume_sysbar">1</integer>
 
 </resources>
