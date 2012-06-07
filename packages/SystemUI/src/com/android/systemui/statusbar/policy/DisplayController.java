@@ -33,10 +33,10 @@ import android.media.AudioSystem;
 import com.android.systemui.R;
 import android.os.SystemProperties;
 import android.provider.Settings;
-import java.io.File;
+/*import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import android.util.Log;
+import android.util.Log;*/
 
 public class DisplayController extends BroadcastReceiver {
     private static final String TAG = "StatusBar.DisplayController";
@@ -124,13 +124,13 @@ public class DisplayController extends BroadcastReceiver {
 				MediaPlayer.setScreen(1);
 				SystemProperties.set("audio.routing", Integer.toString(AudioSystem.DEVICE_OUT_AUX_DIGITAL));
 				AudioSystem.setParameters("routing="+AudioSystem.DEVICE_OUT_AUX_DIGITAL);
-			File file = new File("/cache/.hdmi");
+			/*File file = new File("/cache/.hdmi");
 			try{
 				file.createNewFile();
 			}catch(IOException e)
 			{
 				Log.e("IOException", "Exception in create new File");
-			}
+			}*/
 				//Camera.setCameraScreen(1);
 		        //mDisplayManager.setDisplayOutputType(0,DisplayManager.DISPLAY_OUTPUT_TYPE_HDMI,DisplayManager.DISPLAY_TVFORMAT_1080P_60HZ);
 	        }
@@ -168,8 +168,8 @@ public class DisplayController extends BroadcastReceiver {
 			AudioSystem.setParameters("routing="+AudioSystem.DEVICE_OUT_SPEAKER);
 			//Camera.setCameraScreen(0);
 	        //mDisplayManager.setDisplayOutputType(0,DisplayManager.DISPLAY_OUTPUT_TYPE_LCD,0);
-		File file = new File("/cache/.hdmi");
-		file.delete();
+		/*File file = new File("/cache/.hdmi");
+		file.delete();*/
 		}
 	
 		private void onTvDacPlugOut(Intent intent)
