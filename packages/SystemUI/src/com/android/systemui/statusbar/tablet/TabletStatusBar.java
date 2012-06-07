@@ -52,7 +52,6 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.storage.StorageManager;
 import android.provider.Settings;
-import android.provider.Settings.SettingNotFoundException;
 import android.text.TextUtils;
 import android.util.Pair;
 import android.util.Slog;
@@ -1096,6 +1095,9 @@ public class TabletStatusBar extends StatusBar implements
     }
 
     private void setNavigationVisibility(int visibility) {
+    	ContentResolver resolver = mContext.getContentResolver();
+    	boolean mShowVolume = (Settings.System.getInt(resolver,
+    		Settings.System.VOLUME_SYSBAR, 1) == 1);
         boolean disableHome = ((visibility & StatusBarManager.DISABLE_HOME) != 0);
         boolean disableRecent = ((visibility & StatusBarManager.DISABLE_RECENT) != 0);
         boolean disableBack = ((visibility & StatusBarManager.DISABLE_BACK) != 0);
@@ -1105,14 +1107,13 @@ public class TabletStatusBar extends StatusBar implements
         mBackButton.setVisibility(disableBack ? View.INVISIBLE : View.VISIBLE);
         mHomeButton.setVisibility(disableHome ? View.INVISIBLE : View.VISIBLE);
         mRecentButton.setVisibility(disableRecent ? View.INVISIBLE : View.VISIBLE);
-
-        try {
-        	if (Settings.System.getInt(mContext.getContentResolver(), Settings.System.VOLUME_SYSBAR) == 1) {
-        		mVolumeUpButton.setVisibility(disableVolumeUp ? View.INVISIBLE : View.VISIBLE);
-        		mVolumeDownButton.setVisibility(disableVolumeDown ? View.INVISIBLE : View.VISIBLE);
-        	}
-        } catch (SettingNotFoundException snfe) {
-        	Slog.d(TAG, Settings.System.VOLUME_SYSBAR + " setting does not exist");
+        
+        if (mShowVolume) {
+        	mVolumeUpButton.setVisibility(disableVolumeUp ? View.INVISIBLE : View.VISIBLE);
+        	mVolumeDownButton.setVisibility(disableVolumeDown ? View.INVISIBLE : View.VISIBLE);
+        } else {
+        	mVolumeUpButton.setVisibility(View.INVISIBLE);
+        	mVolumeDownButton.setVisibility(View.INVISIBLE);
         }
 
         mInputMethodSwitchButton.setScreenLocked(

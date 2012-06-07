@@ -146,6 +146,6 @@
     <string name="def_hdmi_resolution">auto</string>
 
     <!-- Default for Settings.System.VOLUME_SYSBAR -->
-    <integer name="def_volume_sysbar">0</integer>
+    <integer name="def_volume_sysbar">1</integer>
 
 </resources>
