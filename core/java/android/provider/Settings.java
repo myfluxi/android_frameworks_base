@@ -2385,6 +2385,13 @@ public final class Settings {
          */
         public static final String VOLBTN_MUSIC_CONTROLS = "volbtn_music_controls";
 
+	/**
+	 * Show or hide volume control on tablet statusbar
+	 * @hide
+	 */
+
+	public static final String VOLUME_SYSBAR = "volume_sysbar";
+
         /**
          * Whether national data roaming should be used.
          * @hide

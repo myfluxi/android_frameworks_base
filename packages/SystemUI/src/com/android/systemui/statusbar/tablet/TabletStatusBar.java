@@ -52,6 +52,7 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.storage.StorageManager;
 import android.provider.Settings;
+import android.provider.Settings.SettingNotFoundException;
 import android.text.TextUtils;
 import android.util.Pair;
 import android.util.Slog;
@@ -153,6 +154,8 @@ public class TabletStatusBar extends StatusBar implements
     View mHomeButton;
     View mMenuButton;
     View mRecentButton;
+    View mVolumeUpButton;
+    View mVolumeDownButton;
 
     ViewGroup mFeedbackIconArea; // notification icons, IME icon, compat icon
     InputMethodButton mInputMethodSwitchButton;
@@ -592,6 +595,8 @@ public class TabletStatusBar extends StatusBar implements
         mNavigationArea = (ViewGroup) sb.findViewById(R.id.navigationArea);
         mHomeButton = mNavigationArea.findViewById(R.id.home);
         mMenuButton = mNavigationArea.findViewById(R.id.menu);
+        mVolumeDownButton = mNavigationArea.findViewById(R.id.volume_down);
+        mVolumeUpButton = mNavigationArea.findViewById(R.id.volume_up);
         mRecentButton = mNavigationArea.findViewById(R.id.recent_apps);
         mRecentButton.setOnClickListener(mOnClickListener);
 
@@ -1092,10 +1097,21 @@ public class TabletStatusBar extends StatusBar implements
         boolean disableHome = ((visibility & StatusBarManager.DISABLE_HOME) != 0);
         boolean disableRecent = ((visibility & StatusBarManager.DISABLE_RECENT) != 0);
         boolean disableBack = ((visibility & StatusBarManager.DISABLE_BACK) != 0);
+        boolean disableVolumeUp = (visibility != 0);
+        boolean disableVolumeDown = (visibility != 0);
 
         mBackButton.setVisibility(disableBack ? View.INVISIBLE : View.VISIBLE);
         mHomeButton.setVisibility(disableHome ? View.INVISIBLE : View.VISIBLE);
         mRecentButton.setVisibility(disableRecent ? View.INVISIBLE : View.VISIBLE);
+
+        try {
+        	if (Settings.System.getInt(mContext.getContentResolver(), Settings.System.VOLUME_SYSBAR) == 1) {
+        		mVolumeUpButton.setVisibility(disableVolumeUp ? View.INVISIBLE : View.VISIBLE);
+        		mVolumeDownButton.setVisibility(disableVolumeDown ? View.INVISIBLE : View.VISIBLE);
+        	}
+        } catch (SettingNotFoundException snfe) {
+        	Slog.d(TAG, Settings.System.VOLUME_SYSBAR + " setting does not exist");
+        }
 
         mInputMethodSwitchButton.setScreenLocked(
                 (visibility & StatusBarManager.DISABLE_SYSTEM_INFO) != 0);
