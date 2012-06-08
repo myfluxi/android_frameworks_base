@@ -2179,6 +2179,20 @@ public final class Settings {
 
 	public static final String HDMI_RESOLUTION = "hdmi_resolution";
 
+	/**
+	 * HDMI should use or ignore gsensor
+	 * @hide
+	 */
+
+	public static final String HDMI_IGNORE_GSENSOR = "hdmi_ignore_gsensor";
+
+	/**
+	 * Show or hide volume control on tablet statusbar
+	 * @hide
+	 */
+
+	public static final String VOLUME_SYSBAR = "volume_sysbar";
+
         /**
          * Use the Notification Power Widget? (Who wouldn't!)
          *
@@ -2389,13 +2403,6 @@ public final class Settings {
          * @hide
          */
         public static final String VOLBTN_MUSIC_CONTROLS = "volbtn_music_controls";
-
-	/**
-	 * Show or hide volume control on tablet statusbar
-	 * @hide
-	 */
-
-	public static final String VOLUME_SYSBAR = "volume_sysbar";
 
         /**
          * Whether national data roaming should be used.
