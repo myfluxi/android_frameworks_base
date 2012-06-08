@@ -336,6 +336,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     boolean mSystemReady;
     boolean mSystemBooted;
     boolean mHdmiPlugged;
+    boolean mHdmiIgnoreGsensor;
     int mUiMode = Configuration.UI_MODE_TYPE_NORMAL;
     int mDockMode = Intent.EXTRA_DOCK_STATE_UNDOCKED;
     int mLidOpenRotation;
@@ -975,6 +976,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         if (intentHDMI != null) {
         	if (intentHDMI.getIntExtra(DisplayManager.EXTRA_HDMISTATUS, 0) == 1) {
         		setHdmiPlugged(true);
+        		mHdmiIgnoreGsensor = (Settings.System.getInt(mContext.getContentResolver(),
+        			Settings.System.HDMI_IGNORE_GSENSOR, 1) == 1);
         	} else {
         		setHdmiPlugged(false);
         	}
@@ -3453,6 +3456,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     	    	     if (Intent.ACTION_HDMISTATUS_CHANGED.equals(intent.getAction())) {
     	    	     	     if(intent.getIntExtra(DisplayManager.EXTRA_HDMISTATUS, 0) == 1) {
     	    	     	     	     setHdmiPlugged(true);
+    	    	     	     	     mHdmiIgnoreGsensor = (Settings.System.getInt(mContext.getContentResolver(),
+    	    	     	     	     	     Settings.System.HDMI_IGNORE_GSENSOR, 1) == 1);
     	    	     	     } else {
     	    	     	     	     setHdmiPlugged(false);
     	    	     	     }
@@ -3640,7 +3645,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 // enable 180 degree rotation while docked.
                 preferredRotation = mKeyboardDockEnablesAccelerometer
                         ? sensorRotation : mKeyboardDockRotation;
-            } else if (mHdmiPlugged) {
+            } else if (mHdmiPlugged && mHdmiIgnoreGsensor) {
                 // Ignore sensor when plugged into HDMI.
                 // Note that the dock orientation overrides the HDMI orientation.
                 preferredRotation = mHdmiRotation;

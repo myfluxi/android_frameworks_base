@@ -2063,6 +2063,20 @@ public final class Settings {
 	 */
 	 public static final String ACCELEROMETER_COORDINATE = "accelerometer_coordinate";
 
+	/**
+	 * HDMI should use or ignore gsensor
+	 * @hide
+	 */
+
+	public static final String HDMI_IGNORE_GSENSOR = "hdmi_ignore_gsensor";
+
+	/**
+	 * Show or hide volume control on tablet statusbar
+	 * @hide
+	 */
+
+	public static final String VOLUME_SYSBAR = "volume_sysbar";
+
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
@@ -2440,13 +2454,6 @@ public final class Settings {
          * @hide
          */
         public static final String MENU_VISIBILITY = "menu_visibility";
-
-	/**
-	 * Show or hide volume control on tablet statusbar
-	 * @hide
-	 */
-
-	public static final String VOLUME_SYSBAR = "volume_sysbar";
 
         /**
          * custom carrier text to display
