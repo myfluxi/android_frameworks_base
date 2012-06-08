@@ -1163,8 +1163,8 @@ public class TabletStatusBar extends StatusBar implements
         	mVolumeUpButton.setVisibility(disableVolumeUp ? View.INVISIBLE : View.VISIBLE);
         	mVolumeDownButton.setVisibility(disableVolumeDown ? View.INVISIBLE : View.VISIBLE);
         } else {
-        	mVolumeUpButton.setVisibility(View.INVISIBLE);
-        	mVolumeDownButton.setVisibility(View.INVISIBLE);
+        	mVolumeUpButton.setVisibility(View.GONE);
+        	mVolumeDownButton.setVisibility(View.GONE);
         }
 
         mInputMethodSwitchButton.setScreenLocked(
