@@ -1406,6 +1406,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             
             loadIntegerSetting(stmt, Settings.System.VOLUME_SYSBAR,
             	    R.integer.def_volume_sysbar);
+            
+            loadStringSetting(stmt, Settings.System.ACCELEROMETER_COORDINATE,
+            	    R.string.def_accelerometer_coordinate);
 
         } finally {
             if (stmt != null) stmt.close();
