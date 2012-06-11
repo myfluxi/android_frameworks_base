@@ -2056,6 +2056,12 @@ public final class Settings {
 	 */
 
 	public static final String HDMI_RESOLUTION = "hdmi_resolution";
+	
+	/**
+	 * To use default or special accelerometer coordinate system
+	 * @hide
+	 */
+	 public static final String ACCELEROMETER_COORDINATE = "accelerometer_coordinate";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
