@@ -260,7 +260,9 @@ public class BTGPSService {
             // Always cancel discovery because it will slow down a connection
 
             try {
-                tmp = mmDevice.createRfcommSocketToServiceRecord(BT_UUID);
+                //tmp = mmDevice.createRfcommSocketToServiceRecord(BT_UUID);
+		if (D) Log.d(TAG, "Insecure connection mode workaround used!");
+		tmp = mmDevice.createInsecureRfcommSocketToServiceRecord(BT_UUID);
             } catch (IOException e) {
                 Log.e(TAG, "Socket create() failed", e);
                 return;
