@@ -46,7 +46,7 @@ struct LiveSession : public AHandler {
     void disconnect();
 
     // Blocks until seek is complete.
-    void seekTo(int64_t timeUs, int64_t* newSeekTime = NULL);
+		int64_t seekTo(int64_t timeUs);
 
     status_t getDuration(int64_t *durationUs);
     bool isSeekable();
@@ -99,12 +99,21 @@ private:
     Mutex mLock;
     Condition mCondition;
     int64_t mDurationUs;
-    bool mSeeking;
+		bool								mSeekDone;
     bool mDisconnectPending;
 
     int32_t mMonitorQueueGeneration;
 
-    enum RefreshState {
+		int64_t								mSeekTargetStartUs;
+
+		bool								mHasSeekMsg;
+		bool								mLastDownloadTobeContinue;
+		int32_t								mLastDownloadOffset;
+		int32_t								mLastSubSeqNumber;
+
+
+		enum RefreshState
+		{
         INITIAL_MINIMUM_RELOAD_DELAY,
         FIRST_UNCHANGED_RELOAD_ATTEMPT,
         SECOND_UNCHANGED_RELOAD_ATTEMPT,
@@ -123,11 +132,11 @@ private:
     void onSeek(const sp<AMessage> &msg);
 
     status_t fetchFile(const char *url, sp<ABuffer> *out);
+		int32_t			fetchTsData(const char* url, bool continueLast);
     sp<M3UParser> fetchPlaylist(const char *url, bool *unchanged);
     size_t getBandwidthIndex();
 
-    status_t decryptBuffer(
-            size_t playlistIndex, const sp<ABuffer> &buffer);
+		status_t		decryptBuffer(size_t playlistIndex, const sp<ABuffer> &buffer);
 
     void postMonitorQueue(int64_t delayUs = 0);
 

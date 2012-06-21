@@ -75,6 +75,9 @@ Layer::Layer(SurfaceFlinger* flinger,
 #ifdef QCOM_HARDWARE
     updateLayerQcomFlags(LAYER_UPDATE_STATUS, true, mLayerQcomFlags);
 #endif
+    texture_srcw       = 0;
+    texture_srch       = 0;
+    texture_format     = 0;
 }
 
 void Layer::onFirstRef()
@@ -149,6 +152,14 @@ sp<ISurface> Layer::createSurface()
 wp<IBinder> Layer::getSurfaceTextureBinder() const
 {
     return mSurfaceTexture->asBinder();
+}
+
+void Layer::setTextureInfo(int w,int h,int format)
+{
+    texture_srcw 	= w;
+    texture_srch 	= h;
+    texture_format 	= format;
+    mCurrentCrop    = Rect(w,h);
 }
 
 status_t Layer::setBuffers( uint32_t w, uint32_t h,
@@ -287,11 +298,19 @@ void Layer::setPerFrameData(hwc_layer_t* hwcl) {
     updateLayerQcomFlags(LAYER_ASYNCHRONOUS_STATUS, !mSurfaceTexture->isSynchronousMode(), mLayerQcomFlags);
     hwcl->flags = getPerFrameFlags(hwcl->flags, mLayerQcomFlags);
 #endif
+    hwcl->format = texture_format;
+    LOGV("hwcl->format = %d\n",texture_format);
 }
 
 void Layer::onDraw(const Region& clip) const
 {
-    if (CC_UNLIKELY(mActiveBuffer == 0)) {
+    if(texture_format)
+    {
+        clearWithOpenGL(clip,0,0,0,0);
+    }
+    else
+    {
+        if (CC_UNLIKELY(mActiveBuffer == 0)) {
         // the texture has not been created yet, this Layer has
         // in fact never been drawn into. This happens frequently with
         // SurfaceView because the WindowManager can't know when the client
@@ -321,7 +340,7 @@ void Layer::onDraw(const Region& clip) const
 #endif
         }
         return;
-    }
+        }
 
 #ifdef QCOM_HARDWARE
 	if (!isGPUSupportedFormat(mActiveBuffer->format)) {
@@ -624,6 +643,85 @@ void Layer::lockPageFlip(bool& recomputeVisibleRegions)
         updateLayerQcomFlags(LAYER_UPDATE_STATUS, false, mLayerQcomFlags);
 #endif
     }
+    else if(texture_format != 0)
+    {
+    	// Capture the old state of the layer for comparisons later
+        const Rect crop(mSurfaceTexture->getCurrentCrop());
+        const uint32_t transform(mSurfaceTexture->getCurrentTransform());
+        const uint32_t scalingMode(mSurfaceTexture->getCurrentScalingMode());
+        if ((crop != mCurrentCrop) ||
+            (transform != mCurrentTransform) ||
+            (scalingMode != mCurrentScalingMode))
+        {
+            mCurrentCrop = crop;
+            LOGV("Layer::lockPageFlip mCurrentCrop");
+            mCurrentTransform = transform;
+            mCurrentScalingMode = scalingMode;
+            mFlinger->invalidateHwcGeometry();
+        }
+
+        GLfloat textureMatrix[16];
+        mSurfaceTexture->getTransformMatrix(textureMatrix);
+        if (memcmp(textureMatrix, mTextureMatrix, sizeof(textureMatrix))) {
+            memcpy(mTextureMatrix, textureMatrix, sizeof(textureMatrix));
+            mFlinger->invalidateHwcGeometry();
+        }
+
+        uint32_t bufWidth  = texture_srcw;
+        uint32_t bufHeight = texture_srch;
+        if (bufWidth != uint32_t(oldtexture_srcw) ||
+            bufHeight != uint32_t(oldtexture_srch))
+        {
+            mFlinger->invalidateHwcGeometry();
+        }
+        // update the layer size and release freeze-lock
+        const Layer::State& front(drawingState());
+
+        // FIXME: mPostedDirtyRegion = dirty & bounds
+        mPostedDirtyRegion.set(front.w, front.h);
+
+        if ((front.w != front.requested_w) ||
+            (front.h != front.requested_h))
+        {
+            // check that we received a buffer of the right size
+            // (Take the buffer's orientation into account)
+            if (mCurrentTransform & Transform::ROT_90) {
+                swap(bufWidth, bufHeight);
+            }
+
+            if (isFixedSize() ||
+                    (bufWidth == front.requested_w &&
+                    bufHeight == front.requested_h))
+            {
+                // Here we pretend the transaction happened by updating the
+                // current and drawing states. Drawing state is only accessed
+                // in this thread, no need to have it locked
+                Layer::State& editDraw(mDrawingState);
+                editDraw.w = editDraw.requested_w;
+                editDraw.h = editDraw.requested_h;
+
+                // We also need to update the current state so that we don't
+                // end-up doing too much work during the next transaction.
+                // NOTE: We actually don't need hold the transaction lock here
+                // because State::w and State::h are only accessed from
+                // this thread
+                Layer::State& editTemp(currentState());
+                editTemp.w = editDraw.w;
+                editTemp.h = editDraw.h;
+
+                // recompute visible region
+                recomputeVisibleRegions = true;
+            }
+
+            LOGV_IF(DEBUG_RESIZE,
+                    "lockPageFlip : "
+                    "       (layer=%p), buffer (%ux%u, tr=%02x), "
+                    "requested (%dx%d)",
+                    this,
+                    bufWidth, bufHeight, mCurrentTransform,
+                    front.requested_w, front.requested_h);
+        }
+    }
 }
 
 void Layer::unlockPageFlip(
@@ -687,6 +785,16 @@ uint32_t Layer::getEffectiveUsage(uint32_t usage) const
 #endif
 
     return usage;
+}
+
+int Layer::setDisplayParameter(uint32_t cmd,uint32_t  value)
+{
+    return mFlinger->setDisplayParameter(cmd,value);
+}
+
+uint32_t Layer::getDisplayParameter(uint32_t cmd)
+{
+    return mFlinger->getDisplayParameter(cmd);
 }
 
 uint32_t Layer::getTransformHint() const {

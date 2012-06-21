@@ -826,6 +826,28 @@ void SurfaceFlinger::invalidateHwcGeometry()
     mHwWorkListDirty = true;
 }
 
+int SurfaceFlinger::setDisplayParameter(uint32_t cmd,uint32_t  value)
+{
+    HWComposer& hwc(graphicPlane(0).displayHardware().getHwComposer());
+    if (hwc.initCheck() == NO_ERROR) 
+    {
+        return hwc.setParameter(cmd,value);
+    }
+
+    return NO_ERROR;
+}
+
+uint32_t SurfaceFlinger::getDisplayParameter(uint32_t cmd)
+{
+    HWComposer& hwc(graphicPlane(0).displayHardware().getHwComposer());
+    if (hwc.initCheck() == NO_ERROR) 
+    {
+        return hwc.getParameter(cmd);
+    }
+
+    return NO_ERROR;
+}
+
 bool SurfaceFlinger::lockPageFlip(const LayerVector& currentLayers)
 {
     bool recomputeVisibleRegions = false;
@@ -1102,9 +1124,9 @@ void SurfaceFlinger::composeSurfaces(const Region& dirty)
     const Vector< sp<LayerBase> >& layers(mVisibleLayersSortedByZ);
     size_t count = layers.size();
     for (size_t i=0 ; i<count ; i++) {
-        if (cur && (cur[i].compositionType != HWC_FRAMEBUFFER)) {
-            continue;
-        }
+        //if (cur && (cur[i].compositionType != HWC_FRAMEBUFFER)) {
+        //    continue;
+        //}
         const sp<LayerBase>& layer(layers[i]);
         const Region clip(dirty.intersect(layer->visibleRegionScreen));
         if (!clip.isEmpty()) {
@@ -1423,6 +1445,19 @@ void SurfaceFlinger::enableExternalDisplay(int disp_type, int value)
     }
 }
 #endif
+
+int SurfaceFlinger::setDisplayProp(int cmd,int param0,int param1,int param2)
+{
+    const DisplayHardware& hw(graphicPlane(0).displayHardware());
+    return hw.setDispProp(cmd,param0,param1,param2);
+}
+
+int SurfaceFlinger::getDisplayProp(int cmd,int param0,int param1)
+{
+    const DisplayHardware& hw(graphicPlane(0).displayHardware());
+
+    return hw.getDispProp(cmd,param0,param1);
+}
 
 sp<ISurface> SurfaceFlinger::createSurface(
         ISurfaceComposerClient::surface_data_t* params,
