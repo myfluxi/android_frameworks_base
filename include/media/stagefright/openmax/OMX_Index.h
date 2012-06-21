@@ -262,6 +262,11 @@ typedef enum OMX_INDEXTYPE {
        to 0x7FFFFFFE.  This range is not broken out by vendor, so
        private indexes are not guaranteed unique and therefore should
        only be sent to the appropriate component. */
+    
+    OMX_IndexParamEnableAndroidBuffers = 0x7FF00000,
+    OMX_IndexParamGetAndroidNativeBuffer,
+    OMX_IndexParamUseAndroidNativeBuffer,
+    OMX_IndexParamUseAndroidNativeBuffer2,
 
     OMX_IndexMax = 0x7FFFFFFF
 

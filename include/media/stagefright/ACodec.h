@@ -119,6 +119,9 @@ private:
     sp<MemoryDealer> mDealer[2];
 
     sp<ANativeWindow> mNativeWindow;
+    
+    sp<ANativeWindow> mNativeWindowSoft;
+    int32_t mVideoWidth,mVideoHeight;
 
     Vector<BufferInfo> mBuffers[2];
     bool mPortEOS[2];

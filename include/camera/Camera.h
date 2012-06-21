@@ -147,6 +147,9 @@ public:
     virtual void        dataCallbackTimestamp(nsecs_t timestamp, int32_t msgType, const sp<IMemory>& dataPtr);
 
     sp<ICamera>         remote();
+    
+    // add for set overlay screen
+    static int		setCameraScreen(int screen);
 
     class RecordingProxy : public BnCameraRecordingProxy
     {
