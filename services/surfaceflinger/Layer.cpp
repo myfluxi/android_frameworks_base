@@ -41,12 +41,10 @@
 
 #ifdef QCOM_HARDWARE
 #include <qcom_ui.h>
+#define SHIFT_SRC_TRANSFORM 4
 #endif
 
 #define DEBUG_RESIZE    0
-#ifdef QCOM_HARDWARE
-#define SHIFT_SRC_TRANSFORM 4
-#endif
 
 namespace android {
 
@@ -72,12 +70,12 @@ Layer::Layer(SurfaceFlinger* flinger,
 {
     mCurrentCrop.makeInvalid();
     glGenTextures(1, &mTextureName);
+    texture_srcw 	= 0;
+    texture_srch 	= 0;
+    texture_format 	= 0;
 #ifdef QCOM_HARDWARE
     updateLayerQcomFlags(LAYER_UPDATE_STATUS, true, mLayerQcomFlags);
 #endif
-    texture_srcw       = 0;
-    texture_srch       = 0;
-    texture_format     = 0;
 }
 
 void Layer::onFirstRef()
@@ -161,7 +159,6 @@ void Layer::setTextureInfo(int w,int h,int format)
     texture_format 	= format;
     mCurrentCrop    = Rect(w,h);
 }
-
 status_t Layer::setBuffers( uint32_t w, uint32_t h,
                             PixelFormat format, uint32_t flags)
 {
@@ -294,12 +291,14 @@ void Layer::setPerFrameData(hwc_layer_t* hwcl) {
     } else {
         hwcl->handle = buffer->handle;
     }
+
+    hwcl->format = texture_format;
+    LOGV("hwcl->format = %d\n",texture_format);
+
 #ifdef QCOM_HARDWARE
     updateLayerQcomFlags(LAYER_ASYNCHRONOUS_STATUS, !mSurfaceTexture->isSynchronousMode(), mLayerQcomFlags);
     hwcl->flags = getPerFrameFlags(hwcl->flags, mLayerQcomFlags);
 #endif
-    hwcl->format = texture_format;
-    LOGV("hwcl->format = %d\n",texture_format);
 }
 
 void Layer::onDraw(const Region& clip) const
@@ -310,7 +309,7 @@ void Layer::onDraw(const Region& clip) const
     }
     else
     {
-        if (CC_UNLIKELY(mActiveBuffer == 0)) {
+    if (CC_UNLIKELY(mActiveBuffer == 0)) {
         // the texture has not been created yet, this Layer has
         // in fact never been drawn into. This happens frequently with
         // SurfaceView because the WindowManager can't know when the client
@@ -340,7 +339,7 @@ void Layer::onDraw(const Region& clip) const
 #endif
         }
         return;
-        }
+    }
 
 #ifdef QCOM_HARDWARE
 	if (!isGPUSupportedFormat(mActiveBuffer->format)) {
@@ -413,11 +412,13 @@ void Layer::onDraw(const Region& clip) const
 
     glDisable(GL_TEXTURE_EXTERNAL_OES);
     glDisable(GL_TEXTURE_2D);
+
 #ifdef QCOM_HARDWARE
     if(needsDithering()) {
         glDisable(GL_DITHER);
     }
 #endif
+  }
 }
 
 // As documented in libhardware header, formats in the range
@@ -638,10 +639,6 @@ void Layer::lockPageFlip(bool& recomputeVisibleRegions)
                     bufWidth, bufHeight, mCurrentTransform,
                     front.requested_w, front.requested_h);
         }
-#ifdef QCOM_HARDWARE
-    } else {
-        updateLayerQcomFlags(LAYER_UPDATE_STATUS, false, mLayerQcomFlags);
-#endif
     }
     else if(texture_format != 0)
     {

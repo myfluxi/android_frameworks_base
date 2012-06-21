@@ -692,14 +692,6 @@ namespace android
 	    return  (jint)gNativeDisplayManager->getDisplayParameter(displayno,DISPLAY_OUTPUT_HOTPLUG);
     }
 	
-    static jint SetDisplayBacklihgtMode_native(JNIEnv *env, jobject clazz,int mode)
-    {
-		 
-		return	SurfaceComposerClient::setDisplayProp(DISPLAY_CMD_SETBACKLIGHTMODE,mode,0,0);
-		
-
-    }
-
 
 static JNINativeMethod method_table[] = {
     { "nativeInit", "()V", (void*)init_native },
@@ -723,7 +715,6 @@ static JNINativeMethod method_table[] = {
     { "nativeGetDisplayPixelFormat", "(I)I", (void*)getDisplayOutputPixelFormat_native },
     { "nativeGetDisplayOpen", "(I)I", (void*)getDisplayOutputOpen_native },
     { "nativeGetDisplayHotPlug", "(I)I", (void*)getDisplayOutputHotPlug_native },
-    { "nativeSetDisplayBacklihgtMode", "(I)I", (void*)SetDisplayBacklihgtMode_native },
     
 };
 

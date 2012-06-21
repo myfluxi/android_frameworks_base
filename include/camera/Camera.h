@@ -25,6 +25,14 @@
 #include <camera/ICameraRecordingProxyListener.h>
 
 namespace android {
+  
+#define MASTER_SCREEN        0
+#define SLAVE_SCREEN         1
+	
+#define PROP_CAMERA_KEY             "media.camera.screen"
+#define PROP_MASTER_SCREEN          "master"
+#define PROP_SLAVE_SCREEN           "slave"
+#define PROP_SCREEN_DEFAULT_VALUE   PROP_MASTER_SCREEN
 
 struct CameraInfo {
     /**
