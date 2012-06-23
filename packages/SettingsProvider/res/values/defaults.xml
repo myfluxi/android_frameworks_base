@@ -146,8 +146,8 @@
     <!-- Default for Accelerometer coordinate -->
     <string name="def_accelerometer_coordinate">default</string>
     <!-- Default for Settings.System.VOLUME_SYSBAR -->
-    <integer name="def_volume_sysbar">1</integer>
     <!-- Default for Settings.System.HDMI_IGNORE_GSENSOR -->
     <integer name="def_hdmi_ignore_gsensor">1</integer>
+    <integer name="def_volume_sysbar">0</integer>
 
 </resources>
