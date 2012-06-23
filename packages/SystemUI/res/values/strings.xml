@@ -400,8 +400,4 @@
     <string name="notifications_off_text">Tap here to turn notifications back on.</string>
 
     <string name="widgets">Widgets</string>
-    
-    <!-- ethernet string  -->
-    <string name="ethernet_link">Ethernet connect to network</string>
-    <string name="ethernet_description">Ethernet</string>
 </resources>
