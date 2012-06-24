@@ -2390,6 +2390,13 @@ public final class Settings {
         public static final String MENU_LOCATION = "menu_location";
 
         /**
+         * NFC polling mode configuration key
+         *
+         * @hide
+         */
+        public static final String NFC_POLLING_MODE = "nfc_polling_mode";
+
+        /**
          * Whether to show CRT off animation
          * 
          * @hide
@@ -2963,6 +2970,11 @@ public final class Settings {
         /**
          * @hide
          */
+        public static final String LOCKSCREEN_WEATHER_TYPE = "lockscreen_weather_type";
+
+        /**
+         * @hide
+         */
         public static final String USE_WEATHER = "use_weather";
         
         /**
@@ -3076,6 +3088,7 @@ public final class Settings {
 
         /**
          * Widgets to show, should be separated by |
+         * @hide
          */
         public static final String NAVIGATION_BAR_WIDGETS = "navigation_bar_widgets";
 
