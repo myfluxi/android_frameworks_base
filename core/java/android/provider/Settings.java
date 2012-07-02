@@ -2180,13 +2180,6 @@ public final class Settings {
 	public static final String HDMI_RESOLUTION = "hdmi_resolution";
 
 	/**
-	 * HDMI should use or ignore gsensor
-	 * @hide
-	 */
-
-	public static final String HDMI_IGNORE_GSENSOR = "hdmi_ignore_gsensor";
-
-	/**
 	 * Show or hide volume control on tablet statusbar
 	 * @hide
 	 */

@@ -1400,9 +1400,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 	    loadStringSetting(stmt, Settings.System.HDMI_RESOLUTION,
                     R.string.def_hdmi_resolution);
-
-            loadIntegerSetting(stmt, Settings.System.HDMI_IGNORE_GSENSOR,
-            	    R.integer.def_hdmi_ignore_gsensor);
             
             loadIntegerSetting(stmt, Settings.System.VOLUME_SYSBAR,
             	    R.integer.def_volume_sysbar);
