@@ -47,9 +47,6 @@ static const uint8_t kNalUnitTypeSeqParamSet = 0x07;
 static const uint8_t kNalUnitTypePicParamSet = 0x08;
 static const int64_t kInitialDelayTimeUs     = 700000LL;
 
-// MPEG4 uses Jan 1, 1904 as epoch, not unix epoch
-static const int64_t kTimestampConversion    = 2082844800LL;
-
 class MPEG4Writer::Track {
 public:
     Track(MPEG4Writer *owner, const sp<MediaSource> &source, size_t trackId);
