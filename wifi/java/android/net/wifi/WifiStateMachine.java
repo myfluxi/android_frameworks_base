@@ -978,6 +978,10 @@ public class WifiStateMachine extends StateMachine {
     public void clearBlacklist() {
         sendMessage(obtainMessage(CMD_CLEAR_BLACKLIST));
     }
+    
+    public boolean isDoingWps() {
+        return getCurrentState() == mWaitForWpsCompletionState;
+    }
 
     public void enableRssiPolling(boolean enabled) {
        sendMessage(obtainMessage(CMD_ENABLE_RSSI_POLL, enabled ? 1 : 0, 0));

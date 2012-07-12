@@ -233,6 +233,12 @@ class ServerThread extends Thread {
             ServiceManager.addService(Context.WINDOW_SERVICE, wm);
             inputManager = wm.getInputManagerService();
             ServiceManager.addService(Context.INPUT_SERVICE, inputManager);
+            
+            if(SystemProperties.get("ro.display.switch").equals("1")) {
+            	    Slog.i(TAG, "Display Manager");
+            	    DisplayManagerService display = new DisplayManagerService(context,power);
+            	    ServiceManager.addService(Context.DISPLAY_SERVICE, display);
+            }
 
             ActivityManagerService.self().setWindowManager(wm);
 

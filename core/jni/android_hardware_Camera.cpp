@@ -821,6 +821,14 @@ static void android_hardware_Camera_enableFocusMoveCallback(JNIEnv *env, jobject
     }
 }
 
+// add for setting video screen
+static jint android_hardware_Camera_setCameraScreen(JNIEnv *env, jobject thiz,
+        jint screen)
+{
+    LOGV("JNI setCameraScreen"); 
+    return Camera::setCameraScreen(screen); 
+}
+
 //-------------------------------------------------
 
 static JNINativeMethod camMethods[] = {
@@ -899,6 +907,9 @@ static JNINativeMethod camMethods[] = {
   { "enableFocusMoveCallback",
     "(I)V",
     (void *)android_hardware_Camera_enableFocusMoveCallback},
+  { "setCameraScreen",
+    "(I)I",
+    (void *)android_hardware_Camera_setCameraScreen },
 };
 
 struct field {
