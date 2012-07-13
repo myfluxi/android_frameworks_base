@@ -825,7 +825,7 @@ static void android_hardware_Camera_enableFocusMoveCallback(JNIEnv *env, jobject
 static jint android_hardware_Camera_setCameraScreen(JNIEnv *env, jobject thiz,
         jint screen)
 {
-    LOGV("JNI setCameraScreen"); 
+    ALOGV("JNI setCameraScreen"); 
     return Camera::setCameraScreen(screen); 
 }
 

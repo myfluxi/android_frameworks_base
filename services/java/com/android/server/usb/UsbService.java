@@ -54,7 +54,8 @@ public class UsbService extends IUsbManager.Stub {
         if (new File("/sys/class/android_usb").exists()) {
             mDeviceManager = new UsbDeviceManager(context, mSettingsManager);
         }
-        else if(new File(Resources.getSystem().getString(com.android.internal.R.string.config_legacyUmsLunFile)).exists())
+        //else if(new File(Resources.getSystem().getString(com.android.internal.R.string.config_legacyUmsLunFile)).exists())
+        else if(new File("/sys/devices/platform/usb_mass_storage/lun0/file").exists())
             mDeviceManager = new LegacyUsbDeviceManager(context, mSettingsManager);
     }
 

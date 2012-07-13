@@ -9558,8 +9558,8 @@ package android.hardware {
     method public static android.hardware.Camera open();
     method public final void reconnect() throws java.io.IOException;
     method public final void release();
-    method public static int setCameraScreen(int);
     method public void setAutoFocusMoveCallback(android.hardware.Camera.AutoFocusMoveCallback);
+    method public static int setCameraScreen(int);
     method public final void setDisplayOrientation(int);
     method public final void setErrorCallback(android.hardware.Camera.ErrorCallback);
     method public final void setFaceDetectionListener(android.hardware.Camera.FaceDetectionListener);
@@ -11353,10 +11353,10 @@ package android.media {
     method public boolean getSubGate();
     method public android.media.MediaPlayer.SubInfo[] getSubList();
     method public int getSubPosition();
+    method public android.media.MediaPlayer.TrackInfo[] getTrackInfo() throws java.lang.IllegalStateException;
     method public android.media.MediaPlayer.TrackInfo[] getTrackList();
     method public java.lang.String getVideoEncode();
     method public int getVideoFrameRate();
-    method public android.media.MediaPlayer.TrackInfo[] getTrackInfo() throws java.lang.IllegalStateException;
     method public int getVideoHeight();
     method public int getVideoWidth();
     method public static boolean getVppGate();
@@ -11370,8 +11370,8 @@ package android.media {
     method public void release();
     method public void reset();
     method public void seekTo(int) throws java.lang.IllegalStateException;
-    method public int setAnaglaghType(int);
     method public void selectTrack(int) throws java.lang.IllegalStateException;
+    method public int setAnaglaghType(int);
     method public void setAudioSessionId(int) throws java.lang.IllegalArgumentException, java.lang.IllegalStateException;
     method public void setAudioStreamType(int);
     method public void setAuxEffectSendLevel(float);
@@ -11516,8 +11516,6 @@ package android.media {
     field public static final int MEDIA_INFO_UNKNOWN = 1; // 0x1
     field public static final int MEDIA_INFO_VIDEO_TRACK_LAGGING = 700; // 0x2bc
     field public static final java.lang.String MEDIA_MIMETYPE_TEXT_SUBRIP = "application/x-subrip";
-    field public static final int VIDEO_SCALING_MODE_SCALE_TO_FIT = 1; // 0x1
-    field public static final int VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING = 2; // 0x2
     field public static final int PICTURE_3D_MODE_COLUME_INTERLEAVE = 5; // 0x5
     field public static final int PICTURE_3D_MODE_DOUBLE_STREAM = 1; // 0x1
     field public static final int PICTURE_3D_MODE_LINE_INTERLEAVE = 4; // 0x4
@@ -11527,6 +11525,8 @@ package android.media {
     field public static final int SLAVE_SCREEN = 1; // 0x1
     field public static final int SUBTITLE_TYPE_BITMAP = 1; // 0x1
     field public static final int SUBTITLE_TYPE_TEXT = 0; // 0x0
+    field public static final int VIDEO_SCALING_MODE_SCALE_TO_FIT = 1; // 0x1
+    field public static final int VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING = 2; // 0x2
   }
 
   public static abstract interface MediaPlayer.OnBufferingUpdateListener {
@@ -11544,7 +11544,7 @@ package android.media {
   public static abstract interface MediaPlayer.OnInfoListener {
     method public abstract boolean onInfo(android.media.MediaPlayer, int, int);
   }
-  
+
   public static abstract interface MediaPlayer.OnParse3dFileListener {
     method public abstract int onParse3dFile(int);
   }
@@ -11564,18 +11564,12 @@ package android.media {
   public static abstract interface MediaPlayer.OnVideoSizeChangedListener {
     method public abstract void onVideoSizeChanged(android.media.MediaPlayer, int, int);
   }
-  
+
   public static class MediaPlayer.SubInfo {
     ctor public MediaPlayer.SubInfo(byte[], java.lang.String, int);
     field public java.lang.String charset;
     field public byte[] name;
     field public int type;
-  }
-
-  public static class MediaPlayer.TrackInfo {
-    ctor public MediaPlayer.TrackInfo(byte[], java.lang.String);
-    field public java.lang.String charset;
-    field public byte[] name;
   }
 
   public static class MediaPlayer.TrackInfo implements android.os.Parcelable {
@@ -23075,10 +23069,11 @@ package android.view {
     method public deprecated int getWidth();
     field public static final int DEFAULT_DISPLAY = 0; // 0x0
   }
-  
+
   public class DisplayManager {
     ctor public DisplayManager();
     method public int closeDisplay(int);
+    method public int getDisplayBacklightMode();
     method public int getDisplayCount();
     method public int getDisplayHeight(int);
     method public int getDisplayHotPlugStatus(int);
@@ -23092,6 +23087,7 @@ package android.view {
     method public int getMaxHdmiMode();
     method public int getMaxWidthDisplay();
     method public int openDisplay(int);
+    method public int setDisplayBacklightMode(int);
     method public int setDisplayMaster(int);
     method public int setDisplayMode(int);
     method public int setDisplayOutputType(int, int, int);

@@ -685,14 +685,14 @@ public class MediaPlayer
             surface = null;
         }
         _setVideoSurface(surface);
-        if(mWindowManager != null) {
+        /*if(mWindowManager != null) {
         	try {
         		mWindowManager.updateRotation(true);
         	}
         	catch (RemoteException e) 
         	{
         	}
-        }
+        }*/
         updateSurfaceScreenOn();
     }
 
@@ -2604,7 +2604,7 @@ public class MediaPlayer
      */
     public native int getSubDelay();
     
-    public static class TrackInfo{
+    /*public static class TrackInfo{
     	public byte[]  name;
     	public String  charset;
 
@@ -2612,7 +2612,7 @@ public class MediaPlayer
     	    name = oName;
     	    charset = oCharset;
         }
-    };
+    };*/
     /**
      * Get the track list of the current playing video.
      * <p>

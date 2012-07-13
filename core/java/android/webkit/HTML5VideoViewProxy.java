@@ -247,7 +247,7 @@ class HTML5VideoViewProxy extends Handler
                	 	mHTML5VideoView.enterFullScreenVideoState(videoLayerId, mCurrentProxy, mCurrentProxy.getWebView());
                 }
                 else{
-                	mHTML5VideoView = new HTML5VideoInline(videoLayerId, time, false);
+                	mHTML5VideoView = new HTML5VideoInline(videoLayerId, time);
                 	mHTML5VideoView.setVideoURI(url, mCurrentProxy);
                 	mHTML5VideoView.prepareDataAndDisplayMode(proxy);
                 }

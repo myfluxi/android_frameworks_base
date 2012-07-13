@@ -41,10 +41,6 @@ public class HTML5VideoView implements MediaPlayer.OnPreparedListener {
     //add by Bevis
     static final boolean BREAKPOINT_ON = true;
     String mVideoUrl = "";
-    
-    //add by Bevis
-    static final boolean BREAKPOINT_ON = true;
-    String mVideoUrl = "";
 
     // Save the seek time when not prepared. This can happen when switching
     // video besides initial load.
