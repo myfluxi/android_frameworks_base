@@ -24,7 +24,7 @@
 #include <utils/Log.h>
 #include <hardware/hardware.h>
 #include <hardware/display.h>
-#include <surfaceflinger/SurfaceComposerClient.h>
+#include <gui/SurfaceComposerClient.h>
 #include <ui/DisplayDispatcher.h>
 #include <stdio.h>
 
@@ -96,7 +96,7 @@ namespace android
 		    err = display_open(disp_module, &disp_device);
 		    if (err == 0) 
 		    {
-		    	LOGE("Open Display Device Failed!\n");
+		    	ALOGE("Open Display Device Failed!\n");
 		    } 
 	    } 
 	}
@@ -269,7 +269,7 @@ namespace android
     {
 	    if (gNativeDisplayManager == NULL) 
 	    {
-	        LOGE("Display manager not initialized.");
+	        ALOGE("Display manager not initialized.");
 	        
 	        jniThrowRuntimeException(env, "Display manager not initialized.");
 	        
@@ -288,7 +288,7 @@ namespace android
 	    }
 	    else 
 	    {
-	        LOGE("Native Display manager already initialized.");
+	        ALOGE("Native Display manager already initialized.");
 	        
 	        jniThrowRuntimeException(env, "Display manager already initialized.");
 	    }
@@ -319,13 +319,13 @@ namespace android
 	{
         int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
 	    
-	    LOGE("changeMode_native.");
+	    ALOGE("changeMode_native.");
 	    
 	    ret = gNativeDisplayManager->changeDisplayMode(displayno,value0,value1);
         if(ret == 0)
@@ -340,14 +340,14 @@ namespace android
     {
     	int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
 	    
-	    LOGE("setDisplayParameter_native.");
+	    ALOGE("setDisplayParameter_native.");
 	    
 	    ret = gNativeDisplayManager->setDisplayParameter(displayno,value0,value1);
         if(ret == 0)
@@ -362,14 +362,14 @@ namespace android
     {
     	int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
 	    
-	    LOGE("setDisplayMode_native.");
+	    ALOGE("setDisplayMode_native.");
 	    
 	    ret = gNativeDisplayManager->setDisplayMode(mode);
         if(ret == 0)
@@ -384,14 +384,14 @@ namespace android
     {
     	int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
 	    
-	    LOGE("openDisplay_native.");
+	    ALOGE("openDisplay_native.");
 	    
 	    ret = gNativeDisplayManager->openDisplay(displayno);
         if(ret == 0)
@@ -407,14 +407,14 @@ namespace android
     {
     	int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
 	    
-	    LOGE("closeDisplay_native.");
+	    ALOGE("closeDisplay_native.");
 	    
 	    ret = gNativeDisplayManager->closeDisplay(displayno);
         if(ret == 0)
@@ -430,14 +430,14 @@ namespace android
     {
     	int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
         
-       // LOGE("getHdmiStatus_native.");
+       // ALOGE("getHdmiStatus_native.");
         
 	    return  (jint)gNativeDisplayManager->getHdmiStatus();		
     }
@@ -446,14 +446,14 @@ namespace android
     {
     	int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
         
-       // LOGE("getHdmiStatus_native.");
+       // ALOGE("getHdmiStatus_native.");
         
 	    return  (jint)gNativeDisplayManager->getMaxHdmiMode();		
     }
@@ -463,14 +463,14 @@ namespace android
     {
     	int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
 	    
-	    //LOGE("getTvDacStatus_native.");
+	    //ALOGE("getTvDacStatus_native.");
         
 	    return  (jint)gNativeDisplayManager->getTvDacStatus();	
     }
@@ -479,14 +479,14 @@ namespace android
     {
     	int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
 	    
-	    //LOGE("getDisplayParameter_native.");
+	    //ALOGE("getDisplayParameter_native.");
         
 	    return  (jint)gNativeDisplayManager->getDisplayParameter(displayno,param);
     }
@@ -495,14 +495,14 @@ namespace android
     {
         int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
 	    
-	    //LOGE("getDisplayMode_native.");
+	    //ALOGE("getDisplayMode_native.");
         
 	    return  (jint)gNativeDisplayManager->getDisplayMode();
     }
@@ -511,14 +511,14 @@ namespace android
     {
         int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
 	    
-	    //LOGE("getDisplayCount_native.");
+	    //ALOGE("getDisplayCount_native.");
         
 	    return  (jint)gNativeDisplayManager->getDisplayCount();
     }
@@ -527,14 +527,14 @@ namespace android
     {
         int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
 	    
-	    LOGE("setDisplayMaster_native.");
+	    ALOGE("setDisplayMaster_native.");
 	    
 	    ret = gNativeDisplayManager->setMasterDisplay(displayno);
         if(ret == 0)
@@ -549,14 +549,14 @@ namespace android
     {
         int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
 	    
-	    //LOGE("getDisplayMaster_native.");
+	    //ALOGE("getDisplayMaster_native.");
 	    
         
 	    return  (jint)gNativeDisplayManager->getMasterDisplay();
@@ -566,14 +566,14 @@ namespace android
     {
         int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
 	    
-	    //LOGE("getDisplayMaster_native.");
+	    //ALOGE("getDisplayMaster_native.");
 	    
         
 	    return  (jint)gNativeDisplayManager->getMaxWidthDisplay();
@@ -584,14 +584,14 @@ namespace android
     {
     	int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    } 
 	    
-	    //LOGE("getDisplayOutputType_native."); 
+	    //ALOGE("getDisplayOutputType_native."); 
         
 	    return  (jint)gNativeDisplayManager->getDisplayParameter(displayno,DISPLAY_OUTPUT_TYPE);
     }
@@ -600,14 +600,14 @@ namespace android
     {
     	int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
 	    
-	    //LOGE("getDisplayOutputFormat_native.");
+	    //ALOGE("getDisplayOutputFormat_native.");
         
 	    return  (jint)gNativeDisplayManager->getDisplayParameter(displayno,DISPLAY_OUTPUT_FORMAT);
     }
@@ -616,14 +616,14 @@ namespace android
     {
     	int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
 	    
-	    //LOGE("getDisplayOutputWidth_native.");
+	    //ALOGE("getDisplayOutputWidth_native.");
         
 	    return  (jint)gNativeDisplayManager->getDisplayParameter(displayno,DISPLAY_OUTPUT_WIDTH);
     }
@@ -632,14 +632,14 @@ namespace android
     {
     	int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
 	    
-	    //LOGE("getDisplayOutputHeight_native.");
+	    //ALOGE("getDisplayOutputHeight_native.");
         
 	    return  (jint)gNativeDisplayManager->getDisplayParameter(displayno,DISPLAY_OUTPUT_HEIGHT);
     }
@@ -648,14 +648,14 @@ namespace android
     {
     	int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
 	    
-	    //LOGE("getDisplayOutputPixelFormat_native.");
+	    //ALOGE("getDisplayOutputPixelFormat_native.");
         
 	    return  (jint)gNativeDisplayManager->getDisplayParameter(displayno,DISPLAY_OUTPUT_PIXELFORMAT);
     }
@@ -664,14 +664,14 @@ namespace android
     {
     	int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
 	    
-	    //LOGE("getDisplayOutputOpen_native.");
+	    //ALOGE("getDisplayOutputOpen_native.");
         
 	    return  (jint)gNativeDisplayManager->getDisplayParameter(displayno,DISPLAY_OUTPUT_ISOPEN);
     }
@@ -680,14 +680,14 @@ namespace android
     {
     	int   ret;
         
-        //LOGE("Native Display manager already initialized.");
+        //ALOGE("Native Display manager already initialized.");
         
 		if (checkDisplayManagerUnitialized(env)) 
 		{
 	        return -1;
 	    }  
 	    
-	    //LOGE("getDisplayOutputHotPlug_native!\n");
+	    //ALOGE("getDisplayOutputHotPlug_native!\n");
         
 	    return  (jint)gNativeDisplayManager->getDisplayParameter(displayno,DISPLAY_OUTPUT_HOTPLUG);
     }
@@ -733,7 +733,7 @@ int register_android_server_DisplayManagerService(JNIEnv *env)
 
     if (clazz == NULL) 
     {
-        LOGE("Can't find com/android/server/DisplayManagerService");
+        ALOGE("Can't find com/android/server/DisplayManagerService");
         
         return -1;
     }
