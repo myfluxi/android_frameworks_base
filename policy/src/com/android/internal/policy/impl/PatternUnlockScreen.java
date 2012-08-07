@@ -24,6 +24,7 @@ import android.security.KeyStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.MotionEvent;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.util.Log;
 import com.android.internal.R;
@@ -169,7 +170,7 @@ class PatternUnlockScreen extends LinearLayoutWithDefaultTouchRecepient
             Log.d(TAG, "landscape mode");
             inflater.inflate(R.layout.keyguard_screen_unlock_landscape, this, true);
         }
-
+        LockScreen.setBackground(context, (ViewGroup) findViewById(R.id.root));
         mKeyguardStatusViewManager = new KeyguardStatusViewManager(this, mUpdateMonitor,
                 mLockPatternUtils, mCallback, true);
 
@@ -248,6 +249,11 @@ class PatternUnlockScreen extends LinearLayoutWithDefaultTouchRecepient
 
     /** {@inheritDoc} */
     public void onKeyboardChange(boolean isKeyboardOpen) {}
+
+    /** {@inheritDoc} */
+    public boolean suspendRecreate() {
+        return false;
+    }
 
     /** {@inheritDoc} */
     public boolean needsInput() {
