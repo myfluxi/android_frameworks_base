@@ -609,18 +609,18 @@ android_media_MediaPlayer_getMetadata(JNIEnv *env, jobject thiz, jboolean update
 static void 
 android_media_MediaPlayer_setScreen(JNIEnv *env, jobject thiz, jint screen)
 {
-    LOGV("setScreen");
+    ALOGV("setScreen");
     MediaPlayer::setScreen(screen);
 }
 
 static jint 
 android_media_MediaPlayer_getScreen(JNIEnv *env, jobject thiz)
 {
-    LOGV("getScreen");
+    ALOGV("getScreen");
 
     jint screen;
     if( OK != MediaPlayer::getScreen(&screen) ){
-        LOGV("Fail in getting screen");
+        ALOGV("Fail in getting screen");
         screen = MASTER_SCREEN;
     }
     
@@ -630,11 +630,11 @@ android_media_MediaPlayer_getScreen(JNIEnv *env, jobject thiz)
 static jboolean 
 android_media_MediaPlayer_isPlayingVideo(JNIEnv *env, jobject thiz)
 {
-    LOGV("isPlayingVideo");
+    ALOGV("isPlayingVideo");
 
     bool playing;
     if( OK != MediaPlayer::isPlayingVideo(&playing) ){
-        LOGV("Fail in isPlayingVideo()");
+        ALOGV("Fail in isPlayingVideo()");
         playing = false;
     }
     
@@ -652,7 +652,7 @@ static jobject _composeObjSubInfo(JNIEnv *env, jclass classSubInfo, jmethodID me
     env->SetByteArrayRegion(name, 0, info->len, (jbyte*)info->name);
     jobject objSubInfo = env->NewObject(classSubInfo, methodSubInfo, name, charset, info->type);
     if(objSubInfo == NULL )
-        LOGE("Fail in creating SubInfo object.");
+        ALOGE("Fail in creating SubInfo object.");
         
     env->DeleteLocalRef(name);
     env->DeleteLocalRef(charset);
@@ -662,7 +662,7 @@ static jobject _composeObjSubInfo(JNIEnv *env, jclass classSubInfo, jmethodID me
 static jobjectArray
 android_media_MediaPlayer_getSubList(JNIEnv *env, jobject thiz)
 {
-    LOGE("enter android_media_MediaPlayer_getSubList");
+    ALOGE("enter android_media_MediaPlayer_getSubList");
 
     jobjectArray jsubList = NULL;
     MediaPlayer_SubInfo *csubList = NULL;
@@ -678,7 +678,7 @@ android_media_MediaPlayer_getSubList(JNIEnv *env, jobject thiz)
     
     classSubInfo = env->FindClass("android/media/MediaPlayer$SubInfo");
     if(classSubInfo == NULL ){
-        LOGE("Fail in finding class android/media/MediaPlayer$SubInfo");
+        ALOGE("Fail in finding class android/media/MediaPlayer$SubInfo");
         return NULL;
     }
     
@@ -688,23 +688,23 @@ android_media_MediaPlayer_getSubList(JNIEnv *env, jobject thiz)
         
     jsubList = env->NewObjectArray(count, classSubInfo, NULL );
     if(jsubList == NULL){
-        LOGE("Fail in creating subInfo array.");
+        ALOGE("Fail in creating subInfo array.");
         goto error;
     }
     csubList = new MediaPlayer_SubInfo[count];
     if(csubList == NULL ){
-        LOGE("Fail in allocating memory.");
+        ALOGE("Fail in allocating memory.");
         goto error;
     }
     count = mp->getSubList(csubList, count);
     if(count <= 0){
-        LOGE("Fail in getting sublist.");
+        ALOGE("Fail in getting sublist.");
         goto error;
     }
     methodSubInfo = env->GetMethodID(classSubInfo, "<init>", 
                                                   "([BLjava/lang/String;I)V");
     if(methodSubInfo == NULL){
-        LOGE("Fail in getting method \"SubInfo\".");
+        ALOGE("Fail in getting method \"SubInfo\".");
         goto error;
     }
     for(int i = 0; i < count; i++){
@@ -855,7 +855,7 @@ android_media_MediaPlayer_setSubCharset(JNIEnv *env, jobject thiz, jstring chars
     
     const char *ccharset = env->GetStringUTFChars(charset, NULL);
     if(ccharset == NULL){
-        LOGE("Fail in converting jstring to cstring.");
+        ALOGE("Fail in converting jstring to cstring.");
         return -1;
     }
     
@@ -874,7 +874,7 @@ android_media_MediaPlayer_getSubCharset(JNIEnv *env, jobject thiz)
     }
     char *ccharset = new char[MEDIAPLAYER_NAME_LEN_MAX];
     if(ccharset == NULL){
-        LOGE("Fail in allocating memory.");
+        ALOGE("Fail in allocating memory.");
         return NULL;
     }
     
@@ -882,7 +882,7 @@ android_media_MediaPlayer_getSubCharset(JNIEnv *env, jobject thiz)
     if(ret == OK){
         jstring charset = env->NewStringUTF(ccharset);
         if(charset == NULL){
-            LOGE("Fail in creating java string with %s.", ccharset);
+            ALOGE("Fail in creating java string with %s.", ccharset);
         }
         delete[] ccharset;
         return charset;
@@ -947,7 +947,7 @@ static jobject _composeObjTrackInfo(JNIEnv *env, jclass classTrackInfo, jmethodI
     env->SetByteArrayRegion(name, 0, info->len, (jbyte*)info->name);
     jobject objTrackInfo = env->NewObject(classTrackInfo, methodTrackInfo, name, charset);
     if(objTrackInfo == NULL )
-        LOGE("Fail in creating TrackInfo object.");
+        ALOGE("Fail in creating TrackInfo object.");
         
     env->DeleteLocalRef(name);
     env->DeleteLocalRef(charset);
@@ -957,7 +957,7 @@ static jobject _composeObjTrackInfo(JNIEnv *env, jclass classTrackInfo, jmethodI
 static jobjectArray
 android_media_MediaPlayer_getTrackList(JNIEnv *env, jobject thiz)
 {
-    LOGE("enter android_media_MediaPlayer_getTrackList");
+    ALOGE("enter android_media_MediaPlayer_getTrackList");
 
     jobjectArray jtrackList = NULL;
     MediaPlayer_TrackInfo *ctrackList = NULL;
@@ -973,7 +973,7 @@ android_media_MediaPlayer_getTrackList(JNIEnv *env, jobject thiz)
     
     classTrackInfo = env->FindClass("android/media/MediaPlayer$TrackInfo");
     if(classTrackInfo == NULL ){
-        LOGE("Fail in finding class android/media/MediaPlayer$TrackInfo");
+        ALOGE("Fail in finding class android/media/MediaPlayer$TrackInfo");
         return NULL;
     }
     
@@ -983,23 +983,23 @@ android_media_MediaPlayer_getTrackList(JNIEnv *env, jobject thiz)
         
     jtrackList = env->NewObjectArray(count, classTrackInfo, NULL );
     if(jtrackList == NULL){
-        LOGE("Fail in creating trackInfo array.");
+        ALOGE("Fail in creating trackInfo array.");
         goto error;
     }
     ctrackList = new MediaPlayer_TrackInfo[count];
     if(ctrackList == NULL ){
-        LOGE("Fail in allocating memory.");
+        ALOGE("Fail in allocating memory.");
         goto error;
     }
     count = mp->getTrackList(ctrackList, count);
     if(count < 0){
-        LOGE("Fail in getting tracklist.");
+        ALOGE("Fail in getting tracklist.");
         goto error;
     }
     methodTrackInfo = env->GetMethodID(classTrackInfo, "<init>", 
                                                   "([BLjava/lang/String;)V");
     if(methodTrackInfo == NULL){
-        LOGE("Fail in getting method \"TrackInfo\".");
+        ALOGE("Fail in getting method \"TrackInfo\".");
         goto error;
     }
     for(int i = 0; i < count; i++){
@@ -1127,7 +1127,7 @@ android_media_MediaPlayer_getVideoEncode(JNIEnv *env, jobject thiz)
     
     char *encode = new char[MEDIAPLAYER_NAME_LEN_MAX];
     if(encode == NULL){
-        LOGE("Fail in allocating memory.");
+        ALOGE("Fail in allocating memory.");
         return NULL;
     }
     status_t ret = mp->getVideoEncode(encode);
@@ -1166,7 +1166,7 @@ android_media_MediaPlayer_getAudioEncode(JNIEnv *env, jobject thiz)
     
     char *encode = new char[MEDIAPLAYER_NAME_LEN_MAX];
     if(encode == NULL){
-        LOGE("Fail in allocating memory.");
+        ALOGE("Fail in allocating memory.");
         return NULL;
     }
     status_t ret = mp->getAudioEncode(encode);
