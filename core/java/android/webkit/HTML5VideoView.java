@@ -37,6 +37,10 @@ public class HTML5VideoView implements MediaPlayer.OnPreparedListener {
     static final int STATE_RESETTED           = 4;
 
     protected HTML5VideoViewProxy mProxy;
+    
+    //add by Bevis
+    static final boolean BREAKPOINT_ON = true;
+    String mVideoUrl = "";
 
     // Save the seek time when not prepared. This can happen when switching
     // video besides initial load.
@@ -83,6 +87,18 @@ public class HTML5VideoView implements MediaPlayer.OnPreparedListener {
 
     public void pause() {
         if (isPlaying()) {
+            if(BREAKPOINT_ON){
+       		int curPos = getCurrentPosition();
+       		int duration = getDuration();
+           	if(curPos > 10000 && curPos < (duration - 10000)) {
+           		int olddPoint = mProxy.getBreakpoint(mVideoUrl);
+           		if(olddPoint != curPos){
+           			mProxy.saveBreakpoint(mVideoUrl,curPos - 3000);
+           		}
+               	} else {
+               		mProxy.deleteBreakpoint(mVideoUrl);
+            	}
+            } 
             mPlayer.pause();
         } else if (mCurrentState == STATE_PREPARING) {
             mPauseDuringPreparing = true;
@@ -180,6 +196,9 @@ public class HTML5VideoView implements MediaPlayer.OnPreparedListener {
 
     public void setVideoURI(String uri, HTML5VideoViewProxy proxy) {
         // When switching players, surface texture will be reused.
+        if(BREAKPOINT_ON){
+        	mVideoUrl = uri;
+        }
         mUri = Uri.parse(uri);
         mHeaders = generateHeaders(uri, proxy);
     }
@@ -246,6 +265,11 @@ public class HTML5VideoView implements MediaPlayer.OnPreparedListener {
         prepareDataCommon(proxy);
     }
 
+    //add by Bevis
+    String getVideoUrl(){
+    	    return mVideoUrl;
+    }
+
 
     // Common code
     public int getVideoLayerId() {
@@ -277,6 +301,14 @@ public class HTML5VideoView implements MediaPlayer.OnPreparedListener {
     @Override
     public void onPrepared(MediaPlayer mp) {
         mCurrentState = STATE_PREPARED;
+        if(BREAKPOINT_ON){
+    		if(mProxy != null){
+    			int breakTime = mProxy.getBreakpoint(mVideoUrl);
+    			if(breakTime > 0){
+    				mSaveSeekTime = breakTime;
+    			}
+    		}
+    	}
         seekTo(mSaveSeekTime);
         if (mProxy != null) {
             mProxy.onPrepared(mp);
