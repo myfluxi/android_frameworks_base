@@ -23,6 +23,7 @@ LOCAL_C_INCLUDES += \
     $(JNI_H_INCLUDE) \
     frameworks/base/services \
     frameworks/base/core/jni \
+    frameworks/native/include \
     external/skia/include/core \
     libcore/include \
     libcore/include/libsuspend \
