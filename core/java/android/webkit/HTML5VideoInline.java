@@ -10,6 +10,7 @@ import android.webkit.HTML5VideoViewProxy;
 import android.view.Surface;
 import android.opengl.GLES20;
 import android.os.PowerManager;
+import android.util.Log;
 
 /**
  * @hide This is only used by the browser
@@ -106,6 +107,30 @@ public class HTML5VideoInline extends HTML5VideoView{
             return 0;
         }
     }
+	
+	@Override
+	public  void updateLayout(int x,int y,int width,int height) {
+		Log.i(LOGTAG,"Layout changed,x="+x+" y="+y+" width="+width+" height="+height);   
+
+		if (mPlayer != null){
+			StringBuilder builder = new StringBuilder();;
+			builder.append(".left="+x);
+			builder.append(".top="+y);
+			builder.append(".right="+(x+width));
+			builder.append(".bottom="+(y+height));
+
+			builder.append(".oldLeft="+0);
+			builder.append(".oldTop="+0);
+			builder.append(".oldRight="+0);
+			builder.append(".oldBottom="+0);
+
+			builder.append(".Rotation="+0);
+
+			Log.i(LOGTAG,builder.toString());
+			mPlayer.setParameter(MediaPlayer.KEY_PARAMETER_AML_VIDEO_POSITION_INFO,builder.toString());
+		}
+		return ;
+	}
 
     private void setFrameAvailableListener(SurfaceTexture.OnFrameAvailableListener l) {
         mSurfaceTexture.setOnFrameAvailableListener(l);

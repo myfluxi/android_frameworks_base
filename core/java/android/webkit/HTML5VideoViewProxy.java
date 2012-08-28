@@ -31,6 +31,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.os.SystemProperties;
+import android.os.Bundle;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -59,7 +61,10 @@ class HTML5VideoViewProxy extends Handler
     private static final int LOAD_DEFAULT_POSTER = 104;
     private static final int BUFFERING_START     = 105;
     private static final int BUFFERING_END       = 106;
+    private static final int ENTER_FULLSCREEN_MODE	= 107;
 
+    private static final int UPDATE_LAYOUT	= 108;
+	 
     // Message Ids to be handled on the WebCore thread
     private static final int PREPARED          = 200;
     private static final int ENDED             = 201;
@@ -149,11 +154,14 @@ class HTML5VideoViewProxy extends Handler
                     // If we are playing the same video, then it is better to
                     // save the current position.
                     if (layerId == mHTML5VideoView.getVideoLayerId()) {
+						if(mHTML5VideoView.isFullScreenMode())
+							return;//is full sreen mode now
                         savePosition = mHTML5VideoView.getCurrentPosition();
                         savedIsPlaying = mHTML5VideoView.isPlaying();
                     }
                     mHTML5VideoView.pauseAndDispatch(mCurrentProxy);
                     mHTML5VideoView.release();
+					mHTML5VideoView=null;
                 }
                 mHTML5VideoView = new HTML5VideoFullScreen(proxy.getContext(),
                         layerId, savePosition, savedIsPlaying);
@@ -168,7 +176,7 @@ class HTML5VideoViewProxy extends Handler
         // When native tell Java to play, we need to check whether or not it is
         // still the same video by using videoLayerId and treat it differently.
         public static void play(String url, int time, HTML5VideoViewProxy proxy,
-                WebChromeClient client, int videoLayerId) {
+                WebChromeClient client, int videoLayerId,WebView webView){
             int currentVideoLayerId = -1;
             boolean backFromFullScreenMode = false;
             if (mHTML5VideoView != null) {
@@ -190,12 +198,20 @@ class HTML5VideoViewProxy extends Handler
                     }
                     // release the media player to avoid finalize error
                     mHTML5VideoView.release();
+					mHTML5VideoView=null;
                 }
                 mCurrentProxy = proxy;
-                mHTML5VideoView = new HTML5VideoInline(videoLayerId, time, false);
+				if(!SystemProperties.getBoolean("Media.HTML5.WindowPlayEnable",false)){
+					/*default  to full screenhtmoe .*/
+					enterFullScreenVideo(videoLayerId,url,proxy,webView);
+				}
+				else
+				{
+					mHTML5VideoView = new HTML5VideoInline(videoLayerId, time, false);
 
-                mHTML5VideoView.setVideoURI(url, mCurrentProxy);
-                mHTML5VideoView.prepareDataAndDisplayMode(proxy);
+					mHTML5VideoView.setVideoURI(url, mCurrentProxy);
+					mHTML5VideoView.prepareDataAndDisplayMode(proxy);
+				}
             } else if (mCurrentProxy == proxy) {
                 // Here, we handle the case when we keep playing with one video
                 if (!mHTML5VideoView.isPlaying()) {
@@ -252,6 +268,10 @@ class HTML5VideoViewProxy extends Handler
             }
             isVideoSelfEnded = false;
         }
+	public static void updateLayout(int x,int y,int width,int height) {
+			Log.i(LOGTAG,"Layout upadte to:x"+x+"y"+y+"w"+width+"h"+height);
+			mHTML5VideoView.updateLayout(x,y,width,height);
+	}
     }
 
     // A bunch event listeners for our VideoView
@@ -319,10 +339,27 @@ class HTML5VideoViewProxy extends Handler
                 WebChromeClient client = mWebView.getWebChromeClient();
                 int videoLayerID = msg.arg1;
                 if (client != null) {
-                    VideoPlayer.play(url, mSeekPosition, this, client, videoLayerID);
+                    VideoPlayer.play(url, mSeekPosition, this, client, videoLayerID,mWebView);
                 }
                 break;
             }
+		case UPDATE_LAYOUT:{
+			Bundle bd=(Bundle) msg.obj;
+			VideoPlayer.updateLayout(
+				bd.getInt("x"),
+				bd.getInt("y"),
+				bd.getInt("width"),
+				bd.getInt("height"));
+			bd=null;
+			break;
+		}
+	    case ENTER_FULLSCREEN_MODE:{
+			String url = (String) msg.obj;
+			WebChromeClient client = mWebView.getWebChromeClient();
+	                int videoLayerID = msg.arg1;
+			VideoPlayer.enterFullScreenVideo(videoLayerID , url, this, mWebView);
+			break;
+	    }
             case SEEK: {
                 Integer time = (Integer) msg.obj;
                 mSeekPosition = time;
@@ -333,11 +370,16 @@ class HTML5VideoViewProxy extends Handler
                 VideoPlayer.pause(this);
                 break;
             }
-            case ENDED:
+            case ENDED:{
+				WebChromeClient client = mWebView.getWebChromeClient();
                 if (msg.arg1 == 1)
                     VideoPlayer.isVideoSelfEnded = true;
                 VideoPlayer.end();
+				if (client != null) {
+					client.onHideCustomView();
+                }
                 break;
+            }	
             case ERROR: {
                 WebChromeClient client = mWebView.getWebChromeClient();
                 if (client != null) {
@@ -604,7 +646,7 @@ class HTML5VideoViewProxy extends Handler
         if (url == null) {
             return;
         }
-
+	Log.i(LOGTAG,"play----["+url+"] position="+position+" id="+videoLayerID);
         if (position > 0) {
             seek(position);
         }
@@ -645,6 +687,23 @@ class HTML5VideoViewProxy extends Handler
     }
 
     /**
+     * layoutUpdate this proxy object.
+     */
+    public void layoutUpdate(int x,int y,int width,int height) {
+        // This is called by the C++ MediaPlayerPrivate dtor.
+		Message message = obtainMessage(UPDATE_LAYOUT);
+		Bundle bd=new Bundle();
+		bd.putInt("x",x);
+		bd.putInt("y",y);
+		bd.putInt("width",width);
+		bd.putInt("height",height);
+		message.obj=bd;
+		sendMessage(message);
+		Log.i(LOGTAG,"Layout upadte to:x"+x+"y"+y+"w"+width+"h"+height);
+    }
+
+	
+    /**
      * Load the poster image.
      * @param url is the URL of the poster image.
      */
@@ -673,7 +732,10 @@ class HTML5VideoViewProxy extends Handler
     }
 
     public void enterFullScreenVideo(int layerId, String url) {
-        VideoPlayer.enterFullScreenVideo(layerId, url, this, mWebView);
+    	Message message = obtainMessage(ENTER_FULLSCREEN_MODE);
+        message.arg1 = layerId;
+        message.obj = url;
+        sendMessage(message);
     }
 
     /**

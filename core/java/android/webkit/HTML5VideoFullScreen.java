@@ -4,6 +4,7 @@ package android.webkit;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.media.Metadata;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -14,13 +15,16 @@ import android.widget.FrameLayout;
 import android.widget.MediaController;
 import android.widget.MediaController.MediaPlayerControl;
 
+import android.view.Window;
+
 
 /**
  * @hide This is only used by the browser
  */
 public class HTML5VideoFullScreen extends HTML5VideoView
     implements MediaPlayerControl, MediaPlayer.OnPreparedListener,
-    View.OnTouchListener {
+    View.OnTouchListener,View.OnLayoutChangeListener
+    {
 
     // Add this sub-class to handle the resizing when rotating screen.
     private class VideoSurfaceView extends SurfaceView {
@@ -33,17 +37,24 @@ public class HTML5VideoFullScreen extends HTML5VideoView
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
             int width = getDefaultSize(mVideoWidth, widthMeasureSpec);
             int height = getDefaultSize(mVideoHeight, heightMeasureSpec);
-            if (mVideoWidth > 0 && mVideoHeight > 0) {
-                if ( mVideoWidth * height  > width * mVideoHeight ) {
-                    height = width * mVideoHeight / mVideoWidth;
-                } else if ( mVideoWidth * height  < width * mVideoHeight ) {
-                    width = height * mVideoWidth / mVideoHeight;
-                }
-            }
+			//if(	mPlayer!=null && 
+			//	mPlayer.getIntParameter(MediaPlayer.KEY_PARAMETER_AML_PLAYER_VIDEO_OUT_TYPE)==MediaPlayer.VIDEO_OUT_HARDWARE){
+			//	/*is hardware mode,we used max size layout now
+			//	always used the max full size.
+			//	*/
+			//}else{
+	            if (mVideoWidth > 0 && mVideoHeight > 0) {
+	                if ( mVideoWidth * height  > width * mVideoHeight ) {
+	                    height = width * mVideoHeight / mVideoWidth;
+	                } else if ( mVideoWidth * height  < width * mVideoHeight ) {
+	                    width = height * mVideoWidth / mVideoHeight;
+	                }
+	            }
+			//}
             setMeasuredDimension(width, height);
         }
     }
-
+	protected static final String LOGTAG = "HTML5VideoFullScreen";
     // This view will contain the video.
     private VideoSurfaceView mVideoSurfaceView;
 
@@ -87,7 +98,8 @@ public class HTML5VideoFullScreen extends HTML5VideoView
                     // ensure the controller will get repositioned later
                     mMediaController.hide();
                 }
-                mMediaController.show();
+		//don't show again
+                //mMediaController.show();
             }
         }
 
@@ -166,8 +178,10 @@ public class HTML5VideoFullScreen extends HTML5VideoView
     @Override
     public void onPrepared(MediaPlayer mp) {
         super.onPrepared(mp);
-
+		
         mVideoSurfaceView.setOnTouchListener(this);
+		mVideoSurfaceView.addOnLayoutChangeListener(this);
+		Log.i(LOGTAG,"addOnLayoutChangeListener");
         // Get the capabilities of the player for this stream
         Metadata data = mp.getMetadata(MediaPlayer.METADATA_ALL,
                 MediaPlayer.BYPASS_METADATA_FILTER);
@@ -181,7 +195,7 @@ public class HTML5VideoFullScreen extends HTML5VideoView
         } else {
             mCanPause = mCanSeekBack = mCanSeekForward = true;
         }
-
+		mPlayer.start();///always start on FULL screen mode;
         // mMediaController status depends on the Metadata result, so put it
         // after reading the MetaData
         if (mMediaController != null) {
@@ -190,17 +204,17 @@ public class HTML5VideoFullScreen extends HTML5VideoView
             if (getAutostart())
                 mMediaController.show();
             else
-                mMediaController.show(0);
+                mMediaController.show(5000);/*hide on after 5 seconds later*/
         }
 
         if (mProgressView != null) {
             mProgressView.setVisibility(View.GONE);
         }
-
+ 
         mVideoWidth = mp.getVideoWidth();
         mVideoHeight = mp.getVideoHeight();
         // This will trigger the onMeasure to get the display size right.
-        mVideoSurfaceView.getHolder().setFixedSize(mVideoWidth, mVideoHeight);
+      	mVideoSurfaceView.getHolder().setFixedSize(mVideoWidth, mVideoHeight);
     }
 
     public boolean fullScreenExited() {
@@ -246,7 +260,6 @@ public class HTML5VideoFullScreen extends HTML5VideoView
         mVideoSurfaceView.setFocusable(true);
         mVideoSurfaceView.setFocusableInTouchMode(true);
         mVideoSurfaceView.requestFocus();
-
         // Create a FrameLayout that will contain the VideoView and the
         // progress view (if any).
         mLayout = new FrameLayout(mProxy.getContext());
@@ -305,7 +318,17 @@ public class HTML5VideoFullScreen extends HTML5VideoView
         }
     return 0;
     }
-
+	
+	@Override
+	public void release() {
+		super.release();
+		if(mProxy!=null && mProxy.getWebView()!=null){
+        	WebChromeClient client = mProxy.getWebView().getWebChromeClient();
+			if(client!=null)
+				client.onHideCustomView();
+		}
+    }
+	
     // Other listeners functions:
     private MediaPlayer.OnBufferingUpdateListener mBufferingUpdateListener =
         new MediaPlayer.OnBufferingUpdateListener() {
@@ -322,7 +345,7 @@ public class HTML5VideoFullScreen extends HTML5VideoView
         }
         return false;
     }
-
+	
     @Override
     protected void switchProgressView(boolean playerBuffering) {
         if (mProgressView != null) {
@@ -334,7 +357,31 @@ public class HTML5VideoFullScreen extends HTML5VideoView
         }
         return;
     }
+	@Override
+	public void onLayoutChange(View v, int left, int top, int right, int bottom,
+	            int oldLeft, int oldTop, int oldRight, int oldBottom){
+	         int Rotation=0;
+	         Log.i(LOGTAG,"Layout changed,left="+left+" top="+top+" right="+right+" bottom="+bottom);   
+			 Log.i(LOGTAG,"Layout changed,oldLeft="+oldLeft+" oldTop="+oldTop+" oldRight="+oldRight+" oldBottom="+oldBottom);
+			 if (mPlayer != null){
+			 	StringBuilder builder = new StringBuilder();;
+				builder.append(".left="+left);
+				builder.append(".top="+top);
+				builder.append(".right="+right);
+				builder.append(".bottom="+bottom);
 
+				builder.append(".oldLeft="+oldLeft);
+				builder.append(".oldTop="+oldTop);
+				builder.append(".oldRight="+oldRight);
+				builder.append(".oldBottom="+oldBottom);
+
+				builder.append(".Rotation="+Rotation);
+				
+				Log.i(LOGTAG,builder.toString());
+			 	mPlayer.setParameter(MediaPlayer.KEY_PARAMETER_AML_VIDEO_POSITION_INFO,builder.toString());
+			 }
+	}
+	
     static class FullScreenMediaController extends MediaController {
 
         View mVideoView;
