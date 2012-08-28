@@ -530,6 +530,7 @@ class BrowserFrame extends Handler {
                 if (mOrientation != msg.arg1) {
                     mOrientation = msg.arg1;
                     nativeOrientationChanged(msg.arg1);
+                    mWebViewCore.contentDraw();             // rotation changed, need to redraw moving element
                 }
                 break;
             }

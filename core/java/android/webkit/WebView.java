@@ -3315,6 +3315,9 @@ public class WebView extends AbsoluteLayout
             nativeSetPauseDrawing(mNativeClass, true);
         } else {
             nativeSetPauseDrawing(mNativeClass, false);
+            if (mWebViewCore != null) {                     // we need update drawing when visibility changed
+                mWebViewCore.contentDraw();
+            }
         }
     }
 
@@ -4550,6 +4553,9 @@ public class WebView extends AbsoluteLayout
             // If it is a password field, start drawing the WebTextView once
             // again.
             mWebTextView.setVisibility(VISIBLE);
+        }
+        if (mWebViewCore != null) {         // we may need update drawings when zoom finished
+            mWebViewCore.contentDraw();
         }
     }
 
@@ -5895,6 +5901,10 @@ public class WebView extends AbsoluteLayout
     @Override
     protected void onScrollChanged(int l, int t, int oldl, int oldt) {
         super.onScrollChanged(l, t, oldl, oldt);
+        // add to trigger animiation when visible
+        if (mWebViewCore != null) {
+            mWebViewCore.contentDraw();
+        }
         if (!mInOverScrollMode) {
             sendOurVisibleRect();
             // update WebKit if visible title bar height changed. The logic is same

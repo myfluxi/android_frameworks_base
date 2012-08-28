@@ -3,6 +3,8 @@ package android.webkit;
 
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
+import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 import android.view.SurfaceView;
@@ -206,6 +208,13 @@ public class HTML5VideoView implements MediaPlayer.OnPreparedListener {
     // Normally called immediately after setVideoURI. But for full screen,
     // this should be after surface holder created
     public void prepareDataAndDisplayMode(HTML5VideoViewProxy proxy) {
+
+        // Tell the music playback service to pause
+        Context context = proxy.getContext();
+        Intent i = new Intent("com.android.music.musicservicecommand");
+        i.putExtra("command", "pause");
+        context.sendBroadcast(i);
+
         // SurfaceTexture will be created lazily here for inline mode
         decideDisplayMode();
 
@@ -259,6 +268,9 @@ public class HTML5VideoView implements MediaPlayer.OnPreparedListener {
     @Override
     public void onPrepared(MediaPlayer mp) {
         mCurrentState = STATE_PREPARED;
+		Log.i(LOGTAG,"MediaPlayer:"+
+				mp.getStringParameter(MediaPlayer.KEY_PARAMETER_AML_PLAYER_TYPE_STR)
+				+" Prepared");
         seekTo(mSaveSeekTime);
         if (mProxy != null) {
             mProxy.onPrepared(mp);
@@ -283,11 +295,13 @@ public class HTML5VideoView implements MediaPlayer.OnPreparedListener {
     public void enterFullScreenVideoState(int layerId,
             HTML5VideoViewProxy proxy, WebView webView) {
     }
-
+   public  void updateLayout(int x,int y,int width,int height) {
+		return ;
+	}
     public boolean isFullScreenMode() {
         return false;
     }
-
+  
     public void decideDisplayMode() {
     }
 
