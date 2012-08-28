@@ -930,6 +930,7 @@ public class WifiService extends IWifiManager.Stub {
                     Slog.d(TAG, "ACTION_SCREEN_ON");
                 }
                 mAlarmManager.cancel(mIdleIntent);
+		mWifiStateMachine.releaseShutdownLock();
                 mScreenOff = false;
                 evaluateTrafficStatsPolling();
                 mWifiStateMachine.enableRssiPolling(true);
@@ -955,14 +956,18 @@ public class WifiService extends IWifiManager.Stub {
                  * or plugged in to AC).
                  */
                 if (!shouldWifiStayAwake(stayAwakeConditions, mPluggedType)) {
+		    mWifiStateMachine.acquireShutdownLock();
                     //Delayed shutdown if wifi is connected
-                    if (mNetworkInfo.getDetailedState() == DetailedState.CONNECTED) {
+                    //if (mNetworkInfo.getDetailedState() == DetailedState.CONNECTED) {
+		    if (true) {
                         if (DBG) Slog.d(TAG, "setting ACTION_DEVICE_IDLE: " + idleMillis + " ms");
                         mAlarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()
                                 + idleMillis, mIdleIntent);
                     } else {
                         setDeviceIdleAndUpdateWifi(true);
                     }
+		} else {
+		    mWifiStateMachine.acquireShutdownLock();
                 }
             } else if (action.equals(ACTION_DEVICE_IDLE)) {
                 setDeviceIdleAndUpdateWifi(true);
@@ -1008,7 +1013,7 @@ public class WifiService extends IWifiManager.Stub {
             //Never sleep as long as the user has not changed the settings
             int wifiSleepPolicy = Settings.System.getInt(mContext.getContentResolver(),
                     Settings.System.WIFI_SLEEP_POLICY,
-                    Settings.System.WIFI_SLEEP_POLICY_NEVER);
+                    Settings.System.WIFI_SLEEP_POLICY_DEFAULT);
 
             if (wifiSleepPolicy == Settings.System.WIFI_SLEEP_POLICY_NEVER) {
                 // Never sleep
