@@ -38,7 +38,9 @@ import android.widget.MediaController.MediaPlayerControl;
 
 import java.io.IOException;
 import java.util.Map;
-
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 /**
  * Displays a video file.  The VideoView class
  * can load images from various sources (such as resources or content
@@ -46,7 +48,9 @@ import java.util.Map;
  * it can be used in any layout manager, and provides various display options
  * such as scaling and tinting.
  */
-public class VideoView extends SurfaceView implements MediaPlayerControl {
+public class VideoView extends SurfaceView implements MediaPlayerControl,
+View.OnLayoutChangeListener 
+{
     private String TAG = "VideoView";
     // settable by the client
     private Uri         mUri;
@@ -101,24 +105,62 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
         super(context, attrs, defStyle);
         initVideoView();
     }
-
+    
+    /** get current hdmi display mode*/
+    private static final String MODE_PATH = "/sys/class/display/mode";
+    private boolean chkIfHdmiMode() {
+       String modeStr = null;
+               
+       File file = new File(MODE_PATH);
+       if (!file.exists()) {
+             return false;
+       }      
+       try {
+             BufferedReader reader = new BufferedReader(new FileReader(MODE_PATH), 32);
+             try {
+                  modeStr = reader.readLine();  
+             } finally {
+                  reader.close();
+             }
+             if(modeStr == null)
+             return false;
+                               
+       } catch (IOException e) { 
+             Log.e("MediaController", "IO Exception when read: " + MODE_PATH, e);
+             return false;
+       }
+       if (modeStr.equals("panel"))
+             return false;
+       else
+             return true;
+    }    
+  
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         //Log.i("@@@@", "onMeasure");
         int width = getDefaultSize(mVideoWidth, widthMeasureSpec);
         int height = getDefaultSize(mVideoHeight, heightMeasureSpec);
         if (mVideoWidth > 0 && mVideoHeight > 0) {
-            if ( mVideoWidth * height  > width * mVideoHeight ) {
-                //Log.i("@@@", "image too tall, correcting");
-                height = width * mVideoHeight / mVideoWidth;
-            } else if ( mVideoWidth * height  < width * mVideoHeight ) {
-                //Log.i("@@@", "image too wide, correcting");
-                width = height * mVideoWidth / mVideoHeight;
-            } else {
-                //Log.i("@@@", "aspect ratio is correct: " +
-                        //width+"/"+height+"="+
-                        //mVideoWidth+"/"+mVideoHeight);
-            }
+//		if(	mMediaPlayer!=null && 
+//			mMediaPlayer.getIntParameter(MediaPlayer.KEY_PARAMETER_AML_PLAYER_VIDEO_OUT_TYPE)==MediaPlayer.VIDEO_OUT_HARDWARE &&
+//			chkIfHdmiMode()){
+//			/*is hardware mode,we used max size layout now
+//			always used the max full size.
+//			if not HDMI,we may play in windows
+//			*/
+//		}else{
+	            if ( mVideoWidth * height  > width * mVideoHeight ) {
+	                //Log.i("@@@", "image too tall, correcting");
+	                height = width * mVideoHeight / mVideoWidth;
+	            } else if ( mVideoWidth * height  < width * mVideoHeight ) {
+	                //Log.i("@@@", "image too wide, correcting");
+	                width = height * mVideoWidth / mVideoHeight;
+	            } else {
+	                //Log.i("@@@", "aspect ratio is correct: " +
+	                        //width+"/"+height+"="+
+	                        //mVideoWidth+"/"+mVideoHeight);
+	            }
+//			}
         }
         //Log.i("@@@@@@@@@@", "setting size: " + width + 'x' + height);
         setMeasuredDimension(width, height);
@@ -158,6 +200,7 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
         mVideoHeight = 0;
         getHolder().addCallback(mSHCallback);
         getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+		addOnLayoutChangeListener(this);
         setFocusable(true);
         setFocusableInTouchMode(true);
         requestFocus();
@@ -274,7 +317,9 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
     MediaPlayer.OnPreparedListener mPreparedListener = new MediaPlayer.OnPreparedListener() {
         public void onPrepared(MediaPlayer mp) {
             mCurrentState = STATE_PREPARED;
-
+			Log.i(TAG,"MediaPlayer:"+
+				mp.getStringParameter(MediaPlayer.KEY_PARAMETER_AML_PLAYER_TYPE_STR)
+				+" Prepared");
             // Get the capabilities of the player for this stream
             Metadata data = mp.getMetadata(MediaPlayer.METADATA_ALL,
                                       MediaPlayer.BYPASS_METADATA_FILTER);
@@ -305,7 +350,7 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
             }
             if (mVideoWidth != 0 && mVideoHeight != 0) {
                 //Log.i("@@@@", "video size: " + mVideoWidth +"/"+ mVideoHeight);
-                getHolder().setFixedSize(mVideoWidth, mVideoHeight);
+               getHolder().setFixedSize(mVideoWidth, mVideoHeight);
                 if (mSurfaceWidth == mVideoWidth && mSurfaceHeight == mVideoHeight) {
                     // We didn't actually change the size (it was already at the size
                     // we need), so we won't get a "surface changed" callback, so
@@ -488,7 +533,30 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
             }
         }
     }
+	@Override
+	public void onLayoutChange(View v, int left, int top, int right, int bottom,
+	            int oldLeft, int oldTop, int oldRight, int oldBottom){
+	         int Rotation=0;
+	         Log.i(TAG,"Layout changed,left="+left+" top="+top+" right="+right+" bottom="+bottom);   
+			 Log.i(TAG,"Layout changed,oldLeft="+oldLeft+" oldTop="+oldTop+" oldRight="+oldRight+" oldBottom="+oldBottom);
+			 if (mMediaPlayer != null){
+			 	StringBuilder builder = new StringBuilder();;
+				builder.append(".left="+left);
+				builder.append(".top="+top);
+				builder.append(".right="+right);
+				builder.append(".bottom="+bottom);
 
+				builder.append(".oldLeft="+oldLeft);
+				builder.append(".oldTop="+oldTop);
+				builder.append(".oldRight="+oldRight);
+				builder.append(".oldBottom="+oldBottom);
+
+				builder.append(".Rotation="+Rotation);
+				
+				Log.i(TAG,builder.toString());
+			 	mMediaPlayer.setParameter(MediaPlayer.KEY_PARAMETER_AML_VIDEO_POSITION_INFO,builder.toString());
+			 }
+	}
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         if (isInPlaybackState() && mMediaController != null) {
