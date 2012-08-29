@@ -30,6 +30,7 @@ import android.os.UEventObserver;
 import android.provider.Settings;
 import android.util.Slog;
 import android.util.Log;
+import android.view.WindowManagerPolicy;
 
 import java.io.FileReader;
 import java.io.FileNotFoundException;
@@ -40,7 +41,8 @@ import java.io.FileNotFoundException;
 class WiredAccessoryObserver extends UEventObserver {
     private static final String TAG = WiredAccessoryObserver.class.getSimpleName();
     private static final boolean LOG = true;
-    private static final int MAX_AUDIO_PORTS = 3; /* h2w, USB Audio & hdmi */
+    private boolean mHdmiPlugged;
+    private static final int MAX_AUDIO_PORTS = 2; /* h2w, USB Audio & hdmi */
     private static final int MAX_AUDIO_PORTS_DOCK = 1;
     private static final String uEventInfo[][] = { {"DEVPATH=/devices/virtual/switch/h2w",
                                                     "/sys/class/switch/h2w/state",
@@ -48,9 +50,10 @@ class WiredAccessoryObserver extends UEventObserver {
                                                    {"DEVPATH=/devices/virtual/switch/usb_audio",
                                                     "/sys/class/switch/usb_audio/state",
                                                     "/sys/class/switch/usb_audio/name"},
-                                                   {"DEVPATH=/devices/virtual/switch/hdmi",
-                                                    "/sys/class/switch/hdmi/state",
-                                                    "/sys/class/switch/hdmi/name"} };
+                                                   //{"DEVPATH=/devices/virtual/switch/hdmi",
+                                                   // "/sys/class/switch/hdmi/state",
+                                                   // "/sys/class/switch/hdmi/name"} };
+						   };
 
     private static final String uEventInfoDock[][] = { {"DEVPATH=/devices/virtual/switch/dock",
                                                         "/sys/class/switch/dock/state",
@@ -142,6 +145,26 @@ class WiredAccessoryObserver extends UEventObserver {
         }
     }
 
+    private BroadcastReceiver mHdmiPluggedReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {        	
+            mHdmiPlugged
+                = intent.getBooleanExtra(WindowManagerPolicy.EXTRA_HDMI_PLUGGED_STATE, false); 
+            
+            //if (LOG) Slog.v(TAG, "HdmiPluggedReceiver, HdmiPlugged = " + mHdmiPlugged);    
+            updateHdmiState(mHdmiPlugged? 1 : 0);                
+        }
+    };
+
+    private synchronized final void updateHdmiState(int state)
+    {
+    	//if (LOG) Slog.v(TAG, "updateHdmiState, state = " + state);  
+        switchState = ((mHeadsetState & (BIT_HEADSET|BIT_HEADSET_NO_MIC|
+                                         BIT_USB_HEADSET_DGTL|BIT_USB_HEADSET_ANLG)) |
+                       ((state == 1) ? BIT_HDMI_AUDIO : 0));
+       
+        update("hdmi", switchState);
+    }
+
     private synchronized final void updateState(String name, int state)
     {
         if (LOG) Slog.v(TAG, "updateState name: " + name + " state " + state);
@@ -160,10 +183,10 @@ class WiredAccessoryObserver extends UEventObserver {
             //       /devices/virtual/switch/dock
             // for the state of 2 - means that we have a USB ANLG headset Car Dock
             // for the state of 1 - means that we have a USB ANLG headset Desk Dock
-        } else if (name.equals("hdmi")) {
-            switchState = ((mHeadsetState & (BIT_HEADSET|BIT_HEADSET_NO_MIC|
-                                             BIT_USB_HEADSET_DGTL|BIT_USB_HEADSET_ANLG)) |
-                           ((state == 1) ? BIT_HDMI_AUDIO : 0));
+        //} else if (name.equals("hdmi")) {
+        //    switchState = ((mHeadsetState & (BIT_HEADSET|BIT_HEADSET_NO_MIC|
+        //                                     BIT_USB_HEADSET_DGTL|BIT_USB_HEADSET_ANLG)) |
+        //                   ((state == 1) ? BIT_HDMI_AUDIO : 0));
         } else if (name.equals("Headset")) {
             switchState = ((mHeadsetState & (BIT_HDMI_AUDIO|BIT_USB_HEADSET_ANLG|
                                              BIT_USB_HEADSET_DGTL)) |
@@ -209,6 +232,16 @@ class WiredAccessoryObserver extends UEventObserver {
                 Slog.e(TAG, "" , e);
             }
         }
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(WindowManagerPolicy.ACTION_HDMI_PLUGGED);
+        Intent intent = mContext.registerReceiver(mHdmiPluggedReceiver, filter);
+        if (intent != null) {
+            // Retrieve current sticky dock event broadcast.
+            mHdmiPlugged = intent.getBooleanExtra(WindowManagerPolicy.EXTRA_HDMI_PLUGGED_STATE, false);
+            updateHdmiState(mHdmiPlugged? 1 : 0);
+        } 
+
     }
 
     private synchronized final void update(String newName, int newState) {
