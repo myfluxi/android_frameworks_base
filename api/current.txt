@@ -10769,6 +10769,15 @@ package android.media {
     method public void setWakeMode(android.content.Context, int);
     method public void start() throws java.lang.IllegalStateException;
     method public void stop() throws java.lang.IllegalStateException;
+    field public static final int KEY_PARAMETER_AML_PLAYER_FORCE_HARD_DECODE = 2007; // 0x7d7
+    field public static final int KEY_PARAMETER_AML_PLAYER_FORCE_SOFT_DECODE = 2008; // 0x7d8
+    field public static final int KEY_PARAMETER_AML_PLAYER_SWITCH_AUDIO_TRACK = 2004; // 0x7d4
+    field public static final int KEY_PARAMETER_AML_PLAYER_SWITCH_SOUND_TRACK = 2003; // 0x7d3
+    field public static final int KEY_PARAMETER_AML_PLAYER_TRICKPLAY_BACKWARD = 2006; // 0x7d6
+    field public static final int KEY_PARAMETER_AML_PLAYER_TRICKPLAY_FORWARD = 2005; // 0x7d5
+    field public static final int KEY_PARAMETER_AML_PLAYER_TYPE_STR = 2001; // 0x7d1
+    field public static final int KEY_PARAMETER_AML_PLAYER_VIDEO_OUT_TYPE = 2002; // 0x7d2
+    field public static final int KEY_PARAMETER_AML_VIDEO_POSITION_INFO = 2000; // 0x7d0
     field public static final int MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK = 200; // 0xc8
     field public static final int MEDIA_ERROR_SERVER_DIED = 100; // 0x64
     field public static final int MEDIA_ERROR_UNKNOWN = 1; // 0x1
@@ -10779,6 +10788,8 @@ package android.media {
     field public static final int MEDIA_INFO_NOT_SEEKABLE = 801; // 0x321
     field public static final int MEDIA_INFO_UNKNOWN = 1; // 0x1
     field public static final int MEDIA_INFO_VIDEO_TRACK_LAGGING = 700; // 0x2bc
+    field public static final int VIDEO_OUT_HARDWARE = 1; // 0x1
+    field public static final int VIDEO_OUT_SOFT_RENDER = 0; // 0x0
   }
 
   public static abstract interface MediaPlayer.OnBufferingUpdateListener {

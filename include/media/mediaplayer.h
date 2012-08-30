@@ -145,6 +145,29 @@ enum media_parameter_keys {
     // audio track, or zero for error (e.g. no audio track) or unknown.
     KEY_PARAMETER_AUDIO_CHANNEL_COUNT = 1200,                   // get only
 
+	//AML Video INFO string,set only
+	KEY_PARAMETER_AML_VIDEO_POSITION_INFO=2000,
+
+	//PLAYER TYPE STRING
+	KEY_PARAMETER_AML_PLAYER_TYPE_STR=2001,
+	//PLAYER VIDEO  OUT/TYPE
+	//public static final int VIDEO_OUT_SOFT_RENDER =	0;
+	//public static final int VIDEO_OUT_HARDWARE	=	1;
+	KEY_PARAMETER_AML_PLAYER_VIDEO_OUT_TYPE=2002,
+	
+	//amlogic private API,set only.
+	//switch sound track
+	KEY_PARAMETER_AML_PLAYER_SWITCH_SOUND_TRACK=2003,//string,refer to lmono,rmono,stereo,set only
+	KEY_PARAMETER_AML_PLAYER_SWITCH_AUDIO_TRACK=2004,//string,refer to audio track index,set only
+	KEY_PARAMETER_AML_PLAYER_TRICKPLAY_FORWARD=2005,//string,refer to forward:speed 
+	KEY_PARAMETER_AML_PLAYER_TRICKPLAY_BACKWARD=2006,//string,refer to  backward:speed
+	KEY_PARAMETER_AML_PLAYER_FORCE_HARD_DECODE=2007,//string,refer to mp3,etc.
+	KEY_PARAMETER_AML_PLAYER_FORCE_SOFT_DECODE=2008,//string,refer to mp3,etc.	
+	
+};
+enum video_out_type {
+	VIDEO_OUT_SOFT_RENDER=0,
+	VIDEO_OUT_HARDWARE=1,
 };
 
 // ----------------------------------------------------------------------------

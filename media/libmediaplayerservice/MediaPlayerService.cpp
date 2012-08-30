@@ -68,6 +68,10 @@
 #include "TestPlayerStub.h"
 #include "StagefrightPlayer.h"
 #include "nuplayer/NuPlayerDriver.h"
+#ifdef BUILD_WITH_AMLOGIC_PLAYER
+#include "AmlogicPlayer.h"
+#endif
+#include "AmSuperPlayer.h"
 
 #include <OMX.h>
 
@@ -203,6 +207,7 @@ extmap FILE_EXTS [] =  {
         {".rtttl", SONIVOX_PLAYER},
         {".rtx", SONIVOX_PLAYER},
         {".ota", SONIVOX_PLAYER},
+        {".ogg", STAGEFRIGHT_PLAYER},
 };
 
 // TODO: Find real cause of Audio/Video delay in PV framework and remove this workaround
@@ -321,7 +326,7 @@ status_t MediaPlayerService::AudioOutput::dump(int fd, const Vector<String16>& a
             mStreamType, mLeftVolume, mRightVolume);
     result.append(buffer);
     snprintf(buffer, 255, "  msec per frame(%f), latency (%d)\n",
-            mMsecsPerFrame, (mTrack != 0) ? mTrack->latency() : -1);
+            mMsecsPerFrame, mLatency);
     result.append(buffer);
     snprintf(buffer, 255, "  aux effect id(%d), send level (%f)\n",
             mAuxEffectId, mSendLevel);
@@ -534,8 +539,33 @@ void MediaPlayerService::Client::disconnect()
 
     IPCThreadState::self()->flushCommands();
 }
+static  bool check_prop_enable(const char* str)
+{
+	char value[PROPERTY_VALUE_MAX];
+	if(property_get(str, value, NULL)>0)
+	{
+		
+		if ((!strcmp(value, "1") || !strcmp(value, "true")))
+		{
+			LOGV("%s is enabled\n",str);
+			return true;
+		}
+	}
+	LOGV("%s is disabled\n",str);
+	return false;
+}
+
+
+static player_type getOldDefaultPlayerType() {
+    return STAGEFRIGHT_PLAYER;
+}
 
 static player_type getDefaultPlayerType() {
+
+#ifdef BUILD_WITH_AMLOGIC_PLAYER
+	if (check_prop_enable("media.amsuperplayer.enable")) 
+		return AMSUPER_PLAYER;
+#endif		
     return STAGEFRIGHT_PLAYER;
 }
 
@@ -577,7 +607,7 @@ player_type getPlayerType(const char* url)
     if (TestPlayerStub::canBeUsed(url)) {
         return TEST_PLAYER;
     }
-
+if (!check_prop_enable("media.amsuperplayer.enable")) {/*if not used  hw decoder*/
     if (!strncasecmp("http://", url, 7)
             || !strncasecmp("https://", url, 8)) {
         size_t len = strlen(url);
@@ -593,6 +623,7 @@ player_type getPlayerType(const char* url)
     if (!strncasecmp("rtsp://", url, 7)) {
         return NU_PLAYER;
     }
+}
 
     // use MidiFile for MIDI extensions
     int lenURL = strlen(url);
@@ -608,6 +639,73 @@ player_type getPlayerType(const char* url)
 
     return getDefaultPlayerType();
 }
+
+player_type getOldPlayerType(int fd, int64_t offset, int64_t length)
+{
+    char buf[20];
+    lseek(fd, offset, SEEK_SET);
+    read(fd, buf, sizeof(buf));
+    lseek(fd, offset, SEEK_SET);
+
+    long ident = *((long*)buf);
+
+    // Ogg vorbis?
+    if (ident == 0x5367674f) // 'OggS'
+        return STAGEFRIGHT_PLAYER;
+
+    // Some kind of MIDI?
+    EAS_DATA_HANDLE easdata;
+    if (EAS_Init(&easdata) == EAS_SUCCESS) {
+        EAS_FILE locator;
+        locator.path = NULL;
+        locator.fd = fd;
+        locator.offset = offset;
+        locator.length = length;
+        EAS_HANDLE  eashandle;
+        if (EAS_OpenFile(easdata, &locator, &eashandle) == EAS_SUCCESS) {
+            EAS_CloseFile(easdata, eashandle);
+            EAS_Shutdown(easdata);
+            return SONIVOX_PLAYER;
+        }
+        EAS_Shutdown(easdata);
+    }
+
+    return getOldDefaultPlayerType();
+}
+
+player_type getOldPlayerType(const char* url)
+{
+    if (TestPlayerStub::canBeUsed(url)) {
+        return TEST_PLAYER;
+    }
+#if 0
+    if (!strncasecmp("http://", url, 7)
+            || !strncasecmp("https://", url, 8)) {
+        size_t len = strlen(url);
+        if (len >= 5 && !strcasecmp(".m3u8", &url[len - 5])) {
+            return NU_PLAYER;
+        }
+
+        if (strstr(url,"m3u8")) {
+            return NU_PLAYER;
+        }
+    }
+#endif
+    // use MidiFile for MIDI extensions
+    int lenURL = strlen(url);
+    for (int i = 0; i < NELEM(FILE_EXTS); ++i) {
+        int len = strlen(FILE_EXTS[i].extension);
+        int start = lenURL - len;
+        if (start > 0) {
+            if (!strncasecmp(url + start, FILE_EXTS[i].extension, len)) {
+                return FILE_EXTS[i].playertype;
+            }
+        }
+    }
+
+    return getOldDefaultPlayerType();
+}
+
 
 static sp<MediaPlayerBase> createPlayer(player_type playerType, void* cookie,
         notify_callback_f notifyFunc)
@@ -626,6 +724,14 @@ static sp<MediaPlayerBase> createPlayer(player_type playerType, void* cookie,
             LOGV(" create NuPlayer");
             p = new NuPlayerDriver;
             break;
+		case AMLOGIC_PLAYER:
+			LOGV("Create AmlogicPlayer");
+            p = new AmlogicPlayer();
+            break;	
+		case AMSUPER_PLAYER:	
+            LOGV("Create AmSuperPlayer");
+            p = new AmSuperPlayer();
+            break;	
         case TEST_PLAYER:
             LOGV("Create Test Player stub");
             p = new TestPlayerStub();
@@ -703,7 +809,7 @@ status_t MediaPlayerService::Client::setDataSource(
         sp<MediaPlayerBase> p = createPlayer(playerType);
         if (p == NULL) return NO_INIT;
 
-        if (!p->hardwareOutput()) {
+        if (!p->hardwareOutput() || playerType == AMSUPER_PLAYER) {
             mAudioOutput = new AudioOutput(mAudioSessionId);
             static_cast<MediaPlayerInterface*>(p.get())->setAudioSink(mAudioOutput);
         }
@@ -753,7 +859,7 @@ status_t MediaPlayerService::Client::setDataSource(int fd, int64_t offset, int64
     sp<MediaPlayerBase> p = createPlayer(playerType);
     if (p == NULL) return NO_INIT;
 
-    if (!p->hardwareOutput()) {
+    if (!p->hardwareOutput() || playerType == AMSUPER_PLAYER) {
         mAudioOutput = new AudioOutput(mAudioSessionId);
         static_cast<MediaPlayerInterface*>(p.get())->setAudioSink(mAudioOutput);
     }
@@ -768,7 +874,14 @@ status_t MediaPlayerService::Client::setDataSource(int fd, int64_t offset, int64
 status_t MediaPlayerService::Client::setDataSource(
         const sp<IStreamSource> &source) {
     // create the right type of player
-    sp<MediaPlayerBase> p = createPlayer(NU_PLAYER);
+    player_type ptype;
+    LOGI("MediaPlayerService::Client::setDataSource(const sp<IStreamSource> &source) \n");
+   if (!check_prop_enable("media.amsuperplayer.enable")) {/*if not used  hw decoder*/
+		ptype=NU_PLAYER;
+   }else{
+		ptype=AMLOGIC_PLAYER;
+   }
+    sp<MediaPlayerBase> p = createPlayer(ptype);
 
     if (p == NULL) {
         return NO_INIT;
@@ -1065,6 +1178,15 @@ status_t MediaPlayerService::Client::getParameter(int key, Parcel *reply) {
     LOGV("[%d] getParameter(%d)", mConnId, key);
     sp<MediaPlayerBase> p = getPlayer();
     if (p == 0) return UNKNOWN_ERROR;
+	if(key==KEY_PARAMETER_AML_PLAYER_TYPE_STR && p->playerType()!=AMSUPER_PLAYER){
+		/*return player name*/
+		reply->writeString16(String16(AmSuperPlayer::PlayerType2Str(p->playerType())));
+		return 0;
+	}	
+	if(key==KEY_PARAMETER_AML_PLAYER_VIDEO_OUT_TYPE && p->playerType()!=AMSUPER_PLAYER){
+		reply->writeInt32(VIDEO_OUT_SOFT_RENDER);/*other all software*/
+		return 0;
+	}
     return p->getParameter(key, reply);
 }
 
@@ -1165,7 +1287,7 @@ sp<IMemory> MediaPlayerService::decode(const char* url, uint32_t *pSampleRate, i
         return mem;
     }
 
-    player_type playerType = getPlayerType(url);
+    player_type playerType = getOldPlayerType(url);
     LOGV("player type = %d", playerType);
 
     // create the right type of player
@@ -1212,7 +1334,7 @@ sp<IMemory> MediaPlayerService::decode(int fd, int64_t offset, int64_t length, u
     sp<MemoryBase> mem;
     sp<MediaPlayerBase> player;
 
-    player_type playerType = getPlayerType(fd, offset, length);
+    player_type playerType = getOldPlayerType(fd, offset, length);
     LOGV("player type = %d", playerType);
 
     // create the right type of player
@@ -1269,6 +1391,7 @@ MediaPlayerService::AudioOutput::AudioOutput(int sessionId)
     mStreamType = AUDIO_STREAM_MUSIC;
     mLeftVolume = 1.0;
     mRightVolume = 1.0;
+    mLatency = 0;
     mMsecsPerFrame = 0;
     mAuxEffectId = 0;
     mSendLevel = 0.0;
@@ -1330,8 +1453,7 @@ ssize_t MediaPlayerService::AudioOutput::frameSize() const
 
 uint32_t MediaPlayerService::AudioOutput::latency () const
 {
-    if (mTrack == 0) return 0;
-    return mTrack->latency();
+    return mLatency;
 }
 
 float MediaPlayerService::AudioOutput::msecsPerFrame() const
@@ -1443,6 +1565,7 @@ status_t MediaPlayerService::AudioOutput::open(
     t->setVolume(mLeftVolume, mRightVolume);
 
     mMsecsPerFrame = 1.e3 / (float) sampleRate;
+    mLatency = t->latency();
     mTrack = t;
 
     t->setAuxEffectSendLevel(mSendLevel);
