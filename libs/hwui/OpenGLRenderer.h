@@ -535,6 +535,7 @@ private:
     void setupDrawVertices(GLvoid* vertices);
     void setupDrawAALine(GLvoid* vertices, GLvoid* distanceCoords, GLvoid* lengthCoords,
             float strokeWidth);
+    void finishDrawAALine();
     void finishDrawTexture();
     void accountForClear(SkXfermode::Mode mode);
 

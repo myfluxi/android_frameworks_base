@@ -1284,6 +1284,13 @@ void OpenGLRenderer::setupDrawAALine(GLvoid* vertices, GLvoid* widthCoords,
     glUniform1f(inverseBoundaryWidthSlot, (1 / boundaryWidthProportion));
 }
 
+void OpenGLRenderer::finishDrawAALine() {
+    int widthSlot = mCaches.currentProgram->getAttrib("vtxWidth");
+    glDisableVertexAttribArray(widthSlot);
+    int lengthSlot = mCaches.currentProgram->getAttrib("vtxLength");
+    glDisableVertexAttribArray(lengthSlot);
+}
+
 void OpenGLRenderer::finishDrawTexture() {
     glDisableVertexAttribArray(mTexCoordsSlot);
 }
@@ -1666,6 +1673,7 @@ void OpenGLRenderer::drawAARect(float left, float top, float right, float bottom
         dirtyLayer(left, top, right, bottom, *mSnapshot->transform);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
+    finishDrawAALine();
 }
 
 /**
@@ -1911,7 +1919,10 @@ void OpenGLRenderer::drawLines(float* points, int count, SkPaint* paint) {
         }
     }
     if (generatedVerticesCount > 0) {
-       glDrawArrays(GL_TRIANGLE_STRIP, 0, generatedVerticesCount);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, generatedVerticesCount);
+    }
+    if (isAA) {
+        finishDrawAALine();
     }
 }
 
