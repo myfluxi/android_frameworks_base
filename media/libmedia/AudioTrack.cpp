@@ -440,6 +440,23 @@ status_t AudioTrack::initCheck() const
 
 uint32_t AudioTrack::latency() const
 {
+    if ((mChannelMask & ~AUDIO_CHANNEL_OUT_ALL) == 0) {
+        uint32_t latency = 1000;
+
+        if (AudioSystem::getOutputLatency(&latency, mStreamType) == NO_ERROR) {
+            LOGV("latency = %d", latency);
+            if (mCblk) {
+                int frames = mCblk->framesReady();
+
+                LOGV("mCblk->framesReady = %d", frames);
+                latency += frames * 1000 / mCblk->sampleRate;
+            }
+
+            return latency;
+        }
+            LOGV("latency getOutputLatency error");
+    }
+
     return mLatency;
 }
 
@@ -1126,7 +1143,7 @@ create_new_track:
     uint32_t u = cblk->user;
     uint32_t bufferEnd = cblk->userBase + cblk->frameCount;
 
-    if (u + framesReq > bufferEnd) {
+    if (u + framesReq > bufferEnd && u < bufferEnd) {
         framesReq = bufferEnd - u;
     }
 
@@ -1315,7 +1332,8 @@ bool AudioTrack::processAudioBuffer(const sp<AudioTrackThread>& thread)
             // Keep this thread going to handle timed events and
             // still try to get more data in intervals of WAIT_PERIOD_MS
             // but don't just loop and block the CPU, so wait
-            usleep(WAIT_PERIOD_MS*1000);
+            //usleep(WAIT_PERIOD_MS*1000);
+            thread->mCv.waitRelative(thread->mWaitLock, milliseconds(WAIT_PERIOD_MS));
             break;
         }
         if (writtenSize > reqSize) writtenSize = reqSize;
@@ -1527,7 +1545,7 @@ uint32_t audio_track_cblk_t::stepUser(uint32_t frameCount)
         u = this->server;
     }
 
-    if (u >= userBase + this->frameCount) {
+    if((int)(u-(userBase + this->frameCount)) >= 0) {
         userBase += this->frameCount;
     }
 
@@ -1575,7 +1593,7 @@ bool audio_track_cblk_t::stepServer(uint32_t frameCount)
             loopStart = UINT_MAX;
         }
     }
-    if (s >= serverBase + this->frameCount) {
+    if((int)(s-(serverBase + this->frameCount)) >= 0) {
         serverBase += this->frameCount;
     }
 

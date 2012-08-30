@@ -96,8 +96,10 @@ status_t AMRNBEncoder::start(MetaData *params) {
     int32_t bitrate;
     if (params && params->findInt32(kKeyBitRate, &bitrate)) {
         mMode = PickModeFromBitrate(bitrate);
+    } else if (mMeta->findInt32(kKeyBitRate, &bitrate)) {
+	mMode = PickModeFromBitrate(bitrate);
     } else {
-        mMode = MR475;
+        mMode = MR122;
     }
 
     return OK;

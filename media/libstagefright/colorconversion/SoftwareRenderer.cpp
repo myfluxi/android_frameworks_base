@@ -29,6 +29,11 @@
 #include <gui/ISurfaceTexture.h>
 
 namespace android {
+  
+  static int ALIGN(int x, int y) {
+    // y must be a power of 2.
+    return (x + y - 1) & ~(y - 1);
+}
 
 SoftwareRenderer::SoftwareRenderer(
         const sp<ANativeWindow> &nativeWindow, const sp<MetaData> &meta)
@@ -69,7 +74,8 @@ SoftwareRenderer::SoftwareRenderer(
             halFormat = HAL_PIXEL_FORMAT_YV12;
             bufWidth = (mCropWidth + 1) & ~1;
             bufHeight = (mCropHeight + 1) & ~1;
-            break;
+	    if (ALIGN(bufWidth, 16) / 2 == ALIGN(bufWidth / 2, 16))
+                break;
         }
 #endif
 
@@ -125,11 +131,6 @@ SoftwareRenderer::SoftwareRenderer(
 SoftwareRenderer::~SoftwareRenderer() {
     delete mConverter;
     mConverter = NULL;
-}
-
-static int ALIGN(int x, int y) {
-    // y must be a power of 2.
-    return (x + y - 1) & ~(y - 1);
 }
 
 void SoftwareRenderer::render(
