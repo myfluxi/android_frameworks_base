@@ -280,6 +280,7 @@ public class WindowManagerService extends IWindowManager.Stub
     private boolean mKeyguardDisabled = false;
 
     private final boolean mHeadless;
+    private boolean mDisablePhabletUi;
 
     private static final int ALLOW_DISABLE_YES = 1;
     private static final int ALLOW_DISABLE_NO = 0;
@@ -911,6 +912,7 @@ public class WindowManagerService extends IWindowManager.Stub
         mLimitedAlphaCompositing = context.getResources().getBoolean(
                 com.android.internal.R.bool.config_sf_limitedAlpha);
         mHeadless = "1".equals(SystemProperties.get(SYSTEM_HEADLESS, "0"));
+	mDisablePhabletUi = "1".equals(SystemProperties.get("ro.disable_phablet_ui", "0"));
 
         mPowerManager = pm;
         mPowerManager.setPolicy(mPolicy);
@@ -6455,7 +6457,11 @@ public class WindowManagerService extends IWindowManager.Stub
         sl = reduceConfigLayout(sl, Surface.ROTATION_90, density, unrotDh, unrotDw);
         sl = reduceConfigLayout(sl, Surface.ROTATION_180, density, unrotDw, unrotDh);
         sl = reduceConfigLayout(sl, Surface.ROTATION_270, density, unrotDh, unrotDw);
-        outConfig.smallestScreenWidthDp = (int)(mSmallestDisplayWidth / density);
+	if (mDisablePhabletUi) {
+	    outConfig.smallestScreenWidthDp=721;
+	} else {
+	    outConfig.smallestScreenWidthDp = (int)(mSmallestDisplayWidth / density);
+	}
         outConfig.screenLayout = sl;
     }
 
