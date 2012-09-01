@@ -44,6 +44,7 @@ class WiredAccessoryObserver extends UEventObserver {
     private static final String TAG = WiredAccessoryObserver.class.getSimpleName();
     private static final boolean LOG = true;
     private boolean mHdmiPlugged;
+    private int switchState;
     private static final int BIT_HEADSET = (1 << 0);
     private static final int BIT_HEADSET_NO_MIC = (1 << 1);
     private static final int BIT_USB_HEADSET_ANLG = (1 << 2);
@@ -240,6 +241,16 @@ class WiredAccessoryObserver extends UEventObserver {
                 return;
             }
         }
+    }
+
+    private synchronized final void updateHdmiState(int state)
+    {
+    	//if (LOG) Slog.v(TAG, "updateHdmiState, state = " + state);  
+        switchState = ((mHeadsetState & (BIT_HEADSET|BIT_HEADSET_NO_MIC|
+                                         BIT_USB_HEADSET_DGTL|BIT_USB_HEADSET_ANLG)) |
+                       ((state == 1) ? BIT_HDMI_AUDIO : 0));
+       
+        update("hdmi", switchState);
     }
 
     private synchronized final void init() {
