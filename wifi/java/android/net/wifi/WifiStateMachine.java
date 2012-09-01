@@ -198,6 +198,8 @@ public class WifiStateMachine extends StateMachine {
 
     // Wakelock held during wifi start/stop and driver load/unload
     private PowerManager.WakeLock mWakeLock;
+    private PowerManager.WakeLock mKeepaliveLock;
+    private PowerManager mPowerManager;
 
     private Context mContext;
 
@@ -665,10 +667,11 @@ public class WifiStateMachine extends StateMachine {
 
         mScanResultCache = new LruCache<String, ScanResult>(SCAN_RESULT_CACHE_SIZE);
 
-        PowerManager powerManager = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
-        mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+	mPowerManager = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
+	mWakeLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+	mKeepaliveLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "WifiKeepaliveLock");
 
-        mSuspendWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "WifiSuspend");
+        mSuspendWakeLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "WifiSuspend");
         mSuspendWakeLock.setReferenceCounted(false);
 
         addState(mDefaultState);
@@ -733,6 +736,18 @@ public class WifiStateMachine extends StateMachine {
         sendMessage(obtainMessage(CMD_START_SCAN, forceActive ?
                 SCAN_ACTIVE : SCAN_PASSIVE, 0));
     }
+
+	public void acquireKeepaliveLock() {
+		loge("acquireKeepaliveLock");
+		if (!mKeepaliveLock.isHeld())
+			mKeepaliveLock.acquire();
+	}
+	
+	public void releaseKeepaliveLock() {
+		loge("releaseKeepaliveLock");
+		if (mKeepaliveLock.isHeld())
+			mKeepaliveLock.release();
+	}
 
     /**
      * TODO: doc
@@ -2752,6 +2767,8 @@ public class WifiStateMachine extends StateMachine {
                     mWifiNative.stopDriver();
                     transitionTo(mDriverStoppingState);
                     mWakeLock.release();
+		    setWifiEnabled(false);
+		    releaseKeepaliveLock();
                     break;
                 case CMD_START_PACKET_FILTERING:
                     if (message.arg1 == MULTICAST_V6) {
