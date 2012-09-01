@@ -18503,6 +18503,8 @@ package android.provider {
     field public static final java.lang.String END_BUTTON_BEHAVIOR = "end_button_behavior";
     field public static final java.lang.String FONT_SCALE = "font_scale";
     field public static final java.lang.String HAPTIC_FEEDBACK_ENABLED = "haptic_feedback_enabled";
+    field public static final java.lang.String HDMI_DUAL_DISP = "hdmi_dual_disp";
+    field public static final java.lang.String HDMI_SPDIF = "hdmi_spdif";
     field public static final deprecated java.lang.String HTTP_PROXY = "http_proxy";
     field public static final deprecated java.lang.String INSTALL_NON_MARKET_APPS = "install_non_market_apps";
     field public static final deprecated java.lang.String LOCATION_PROVIDERS_ALLOWED = "location_providers_allowed";
@@ -28927,7 +28929,7 @@ package android.widget {
     method public android.widget.TextView getText2();
   }
 
-  public class VideoView extends android.view.SurfaceView implements android.widget.MediaController.MediaPlayerControl {
+  public class VideoView extends android.view.SurfaceView implements android.widget.MediaController.MediaPlayerControl android.view.View.OnLayoutChangeListener {
     ctor public VideoView(android.content.Context);
     ctor public VideoView(android.content.Context, android.util.AttributeSet);
     ctor public VideoView(android.content.Context, android.util.AttributeSet, int);
@@ -28938,6 +28940,7 @@ package android.widget {
     method public int getCurrentPosition();
     method public int getDuration();
     method public boolean isPlaying();
+    method public void onLayoutChange(android.view.View, int, int, int, int, int, int, int, int);
     method public void pause();
     method public int resolveAdjustedSize(int, int);
     method public void resume();
