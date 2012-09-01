@@ -30,6 +30,7 @@ import android.os.UEventObserver;
 import android.util.Slog;
 import android.media.AudioManager;
 import android.util.Log;
+import android.view.WindowManagerPolicy;
 
 import java.io.File;
 import java.io.FileReader;
@@ -44,6 +45,7 @@ import java.util.List;
 class WiredAccessoryObserver extends UEventObserver {
     private static final String TAG = WiredAccessoryObserver.class.getSimpleName();
     private static final boolean LOG = true;
+    private boolean mHdmiPlugged;
     private static final int BIT_HEADSET = (1 << 0);
     private static final int BIT_HEADSET_NO_MIC = (1 << 1);
     private static final int BIT_USB_HEADSET_ANLG = (1 << 2);
@@ -100,10 +102,10 @@ class WiredAccessoryObserver extends UEventObserver {
             //       /devices/virtual/switch/dock
             // for the state of 2 - means that we have a USB ANLG headset Car Dock
             // for the state of 1 - means that we have a USB ANLG headset Desk Dock
-        } else if (name.equals("hdmi")) {
-            switchState = ((mHeadsetState & (BIT_HEADSET|BIT_HEADSET_NO_MIC|
-                                             BIT_USB_HEADSET_DGTL|BIT_USB_HEADSET_ANLG)) |
-                           ((state == 1) ? BIT_HDMI_AUDIO : 0));
+        //} else if (name.equals("hdmi")) {
+        //    switchState = ((mHeadsetState & (BIT_HEADSET|BIT_HEADSET_NO_MIC|
+        //                                     BIT_USB_HEADSET_DGTL|BIT_USB_HEADSET_ANLG)) |
+        //                   ((state == 1) ? BIT_HDMI_AUDIO : 0));
         } else if (name.equals("Headset")) {
             switchState = ((mHeadsetState & (BIT_HDMI_AUDIO|BIT_USB_HEADSET_ANLG|
                                              BIT_USB_HEADSET_DGTL)) |
@@ -155,7 +157,7 @@ class WiredAccessoryObserver extends UEventObserver {
         //
         // If the kernel does not have an "hdmi_audio" switch, just fall back on the older "hdmi"
         // switch instead.
-        uei = new UEventInfo("hdmi_audio", BIT_HDMI_AUDIO, 0);
+        /*uei = new UEventInfo("hdmi_audio", BIT_HDMI_AUDIO, 0);
         if (uei.checkSwitchExists()) {
             retVal.add(uei);
         } else {
@@ -165,7 +167,7 @@ class WiredAccessoryObserver extends UEventObserver {
             } else {
                 Slog.w(TAG, "This kernel does not have HDMI audio support");
             }
-        }
+        }*/
 
         return retVal;
     }
@@ -254,6 +256,26 @@ class WiredAccessoryObserver extends UEventObserver {
         }
     }
 
+    private BroadcastReceiver mHdmiPluggedReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {        	
+            mHdmiPlugged
+                = intent.getBooleanExtra(WindowManagerPolicy.EXTRA_HDMI_PLUGGED_STATE, false); 
+            
+            //if (LOG) Slog.v(TAG, "HdmiPluggedReceiver, HdmiPlugged = " + mHdmiPlugged);    
+            updateHdmiState(mHdmiPlugged? 1 : 0);                
+        }
+    };
+
+    private synchronized final void updateHdmiState(int state)
+    {
+    	//if (LOG) Slog.v(TAG, "updateHdmiState, state = " + state);  
+        switchState = ((mHeadsetState & (BIT_HEADSET|BIT_HEADSET_NO_MIC|
+                                         BIT_USB_HEADSET_DGTL|BIT_USB_HEADSET_ANLG)) |
+                       ((state == 1) ? BIT_HDMI_AUDIO : 0));
+       
+        update("hdmi", switchState);
+    }
+
     private synchronized final void updateState(String devPath, String name, int state) {
         for (int i = 0; i < uEventInfo.size(); ++i) {
             UEventInfo uei = uEventInfo.get(i);
@@ -290,6 +312,14 @@ class WiredAccessoryObserver extends UEventObserver {
                 Slog.e(TAG, "" , e);
             }
         }
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(WindowManagerPolicy.ACTION_HDMI_PLUGGED);
+        Intent intent = mContext.registerReceiver(mHdmiPluggedReceiver, filter);
+        if (intent != null) {
+            // Retrieve current sticky dock event broadcast.
+            mHdmiPlugged = intent.getBooleanExtra(WindowManagerPolicy.EXTRA_HDMI_PLUGGED_STATE, false);
+            updateHdmiState(mHdmiPlugged? 1 : 0);
+        } 
     }
 
     private synchronized final void update(String newName, int newState) {
