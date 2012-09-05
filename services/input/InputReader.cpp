@@ -42,6 +42,7 @@
 #include "InputReader.h"
 
 #include <cutils/log.h>
+#include <cutils/properties.h>
 #include <androidfw/Keyboard.h>
 #include <androidfw/VirtualKeyMap.h>
 
@@ -2582,6 +2583,7 @@ TouchInputMapper::TouchInputMapper(InputDevice* device) :
         InputMapper(device),
         mSource(0), mDeviceMode(DEVICE_MODE_DISABLED),
         mSurfaceOrientation(-1), mSurfaceWidth(-1), mSurfaceHeight(-1) {
+	  mHWRotation = DISPLAY_ORIENTATION_0;
 }
 
 TouchInputMapper::~TouchInputMapper() {
@@ -2927,6 +2929,16 @@ void TouchInputMapper::configureSurface(nsecs_t when, bool* outResetNeeded) {
         }
     }
 
+            char property[PROPERTY_VALUE_MAX];
+            if (property_get("ro.sf.hwrotation", property, NULL) > 0) {
+                mHWRotation = atoi(property) / 90;
+                if (DISPLAY_ORIENTATION_90 == mHWRotation || DISPLAY_ORIENTATION_270 == mHWRotation) {
+                    int32_t tmp = mAssociatedDisplayWidth;
+                    mAssociatedDisplayWidth = mAssociatedDisplayHeight;
+                    mAssociatedDisplayHeight = tmp;
+                }
+            }
+
     // Configure dimensions.
     int32_t width, height, orientation;
     if (mDeviceMode == DEVICE_MODE_DIRECT || mDeviceMode == DEVICE_MODE_POINTER) {
@@ -3134,7 +3146,7 @@ void TouchInputMapper::configureSurface(nsecs_t when, bool* outResetNeeded) {
             mOrientedRanges.distance.min =
                     mRawPointerAxes.distance.minValue * mDistanceScale;
             mOrientedRanges.distance.max =
-                    mRawPointerAxes.distance.maxValue * mDistanceScale;
+                    mRawPointerAxes.distance.minValue * mDistanceScale;
             mOrientedRanges.distance.flat = 0;
             mOrientedRanges.distance.fuzz =
                     mRawPointerAxes.distance.fuzz * mDistanceScale;
@@ -3145,7 +3157,8 @@ void TouchInputMapper::configureSurface(nsecs_t when, bool* outResetNeeded) {
         // Compute oriented surface dimensions, precision, scales and ranges.
         // Note that the maximum value reported is an inclusive maximum value so it is one
         // unit less than the total width or height of surface.
-        switch (mSurfaceOrientation) {
+        int32_t adjustedorientation = (mSurfaceOrientation + mHWRotation) % 4;
+	switch (adjustedorientation) {
         case DISPLAY_ORIENTATION_90:
         case DISPLAY_ORIENTATION_270:
             mOrientedSurfaceWidth = mSurfaceHeight;
@@ -4117,7 +4130,8 @@ void TouchInputMapper::cookPointerData() {
         // X and Y
         // Adjust coords for surface orientation.
         float x, y;
-        switch (mSurfaceOrientation) {
+        int32_t adjustedorientation = (mSurfaceOrientation + mHWRotation) % 4;
+	switch (adjustedorientation) {
         case DISPLAY_ORIENTATION_90:
             x = float(in.y - mRawPointerAxes.y.minValue) * mYScale;
             y = float(mRawPointerAxes.x.maxValue - in.x) * mXScale;
