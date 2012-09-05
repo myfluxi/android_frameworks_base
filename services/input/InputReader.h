@@ -1293,6 +1293,7 @@ private:
     int32_t mSurfaceOrientation;
     int32_t mSurfaceWidth;
     int32_t mSurfaceHeight;
+    int32_t mHWRotation;
 
     // The associated display orientation and width and height set by configureSurface().
     int32_t mAssociatedDisplayOrientation;
