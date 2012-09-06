@@ -41,6 +41,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.storage.StorageManager;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Pair;
@@ -267,6 +268,8 @@ public class TabletStatusBar extends BaseStatusBar implements
     CustomTheme mCurrentTheme;
     private boolean mRecreating = false;
 
+    private StorageManager mStorageManager;
+
 
     protected void addPanelWindows() {
         final Context context = mContext;
@@ -296,6 +299,11 @@ public class TabletStatusBar extends BaseStatusBar implements
         // Bt
         mBluetoothController.addIconView(
                 (ImageView)mNotificationPanel.findViewById(R.id.bluetooth));
+
+	// storage manager (copy from PhoneStatusBarPolicy.java)
+	mStorageManager = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
+	mStorageManager.registerListener(
+		 new com.android.systemui.usb.StorageNotification(context));
 
         // network icons: either a combo icon that switches between mobile and data, or distinct
         // mobile and data icons
