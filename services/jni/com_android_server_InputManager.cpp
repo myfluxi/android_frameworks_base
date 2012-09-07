@@ -189,6 +189,7 @@ public:
     void setShowTouches(bool enabled);
     void setKeyLayout(const char* deviceName, const char* keyLayout);
     void setStylusIconEnabled(bool enabled);
+    void setTvOutStatus(bool on);
 
     /* --- InputReaderPolicyInterface implementation --- */
 
@@ -716,6 +717,18 @@ void NativeInputManager::setShowTouches(bool enabled) {
 
     mInputManager->getReader()->requestRefreshConfiguration(
             InputReaderConfiguration::CHANGE_SHOW_TOUCHES);
+}
+
+void NativeInputManager::setTvOutStatus(bool on) {
+    getInputManager()->getReader()->setTvOutStatus(on);
+    { //acquire lock
+        AutoMutex _l(mLock);
+
+        sp<PointerController> controller = mLocked.pointerController.promote();
+        if (controller != NULL) {
+            controller->setTvOutStatus(on);
+        }
+    } //release lock
 }
 
 void NativeInputManager::setStylusIconEnabled(bool enabled) {
@@ -1374,6 +1387,11 @@ static void android_server_InputManager_nativeMonitor(JNIEnv* env, jclass clazz)
     gNativeInputManager->getInputManager()->getDispatcher()->monitor();
 }
 
+static void android_server_InputManager_nativeSetTvOutStatus(JNIEnv* env,
+        jclass clazz, jboolean on) {
+    gNativeInputManager->setTvOutStatus(on);
+}
+
 static void android_server_InputManager_nativeSetKeyLayout(JNIEnv* env,
         jclass clazz, jstring deviceName, jstring keyLayout) {
     if (checkInputManagerUnitialized(env)) {
@@ -1451,6 +1469,8 @@ static JNINativeMethod gInputManagerMethods[] = {
             (void*) android_server_InputManager_nativeDump },
     { "nativeMonitor", "()V",
             (void*) android_server_InputManager_nativeMonitor },
+    { "nativeSetTvOutStatus","(Z)V",
+            (void*) android_server_InputManager_nativeSetTvOutStatus},
     { "nativeSetKeyLayout", "(Ljava/lang/String;Ljava/lang/String;)V",
             (void*) android_server_InputManager_nativeSetKeyLayout },
     { "nativeSetStylusIconEnabled", "(Z)V",

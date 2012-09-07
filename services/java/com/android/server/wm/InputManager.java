@@ -99,6 +99,7 @@ public class InputManager implements Watchdog.Monitor {
     private static native void nativeMonitor();
     private static native void nativeSetKeyLayout(String deviceName, String keyLayout);
     private static native void nativeSetStylusIconEnabled(boolean enabled);
+    private static native void nativeSetTvOutStatus(boolean on);
 
     // Input event injection constants defined in InputDispatcher.h.
     static final int INPUT_EVENT_INJECTION_SUCCEEDED = 0;
@@ -530,6 +531,11 @@ public class InputManager implements Watchdog.Monitor {
     public void monitor() {
         synchronized (mInputFilterLock) { }
         nativeMonitor();
+    }
+
+    // Set TV Out Status
+    public void setTvOutStatus(boolean on){
+        nativeSetTvOutStatus(on);
     }
 
     private void setKeyLayout(String deviceName, String keyLayout) {
