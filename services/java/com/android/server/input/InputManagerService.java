@@ -180,6 +180,7 @@ public class InputManagerService extends IInputManager.Stub implements Watchdog.
     private static native void nativeReloadDeviceAliases(int ptr);
     private static native String nativeDump(int ptr);
     private static native void nativeMonitor(int ptr);
+    private static native void nativeSetTvOutStatus(int ptr, boolean on);
 
     // Input event injection constants defined in InputDispatcher.h.
     private static final int INPUT_EVENT_INJECTION_SUCCEEDED = 0;
@@ -1218,6 +1219,11 @@ public class InputManagerService extends IInputManager.Stub implements Watchdog.
     public void monitor() {
         synchronized (mInputFilterLock) { }
         nativeMonitor(mPtr);
+    }
+
+    // Set TV Out Status
+    public void setTvOutStatus(boolean on){
+        nativeSetTvOutStatus(mPtr, on);
     }
 
     // Native callback.
