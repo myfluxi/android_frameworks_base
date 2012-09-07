@@ -49,6 +49,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <math.h>
+#include <fcntl.h>
 
 #define INDENT "  "
 #define INDENT2 "    "
@@ -62,6 +63,10 @@ namespace android {
 
 // Maximum number of slots supported when using the slot-based Multitouch Protocol B.
 static const size_t MAX_SLOTS = 32;
+
+static char g_dmode_str[32];
+static char g_daxis_str[32];
+
 
 // --- Static Functions ---
 
@@ -701,6 +706,19 @@ void InputReader::requestRefreshConfiguration(uint32_t changes) {
     }
 }
 
+void InputReader::setTvOutStatus(bool enabled){
+    AutoMutex _l(mLock);
+    LOGI("InputReader::setTvOutStatus %d",enabled);
+
+    size_t numDevices = mDevices.size();
+    for (size_t i = 0; i < numDevices; i++) {
+        InputDevice* device = mDevices.valueAt(i);
+        if (!device->isIgnored()) {
+            device->setTvOutStatus(enabled);
+        }
+    }
+}
+
 void InputReader::setKeyLayout(const char* deviceName, const char* keyLayout) {
     AutoMutex _l(mLock);
     mEventHub->setKeyLayout(deviceName, keyLayout);
@@ -1049,6 +1067,14 @@ void InputDevice::fadePointer() {
 void InputDevice::notifyReset(nsecs_t when) {
     NotifyDeviceResetArgs args(when, mId);
     mContext->getListener()->notifyDeviceReset(&args);
+}
+
+void InputDevice::setTvOutStatus(bool enabled){
+    size_t numMappers = mMappers.size();
+    for (size_t i = 0; i < numMappers; i++) {
+        InputMapper* mapper = mMappers[i];
+        mapper->setTvOutStatus(enabled);
+    }
 }
 
 
@@ -1738,6 +1764,9 @@ int32_t InputMapper::getMetaState() {
 void InputMapper::fadePointer() {
 }
 
+void InputMapper::setTvOutStatus(bool enabled){
+}
+
 status_t InputMapper::getAbsoluteAxisInfo(int32_t axis, RawAbsoluteAxisInfo* axisInfo) {
     return getEventHub()->getAbsoluteAxisInfo(getDeviceId(), axis, axisInfo);
 }
@@ -2362,7 +2391,7 @@ void CursorInputMapper::fadePointer() {
 
 TouchInputMapper::TouchInputMapper(InputDevice* device) :
         InputMapper(device),
-        mSource(0), mDeviceMode(DEVICE_MODE_DISABLED),
+        mSource(0), mTvOutStatus(false), mPadmouseStatus(false), mDeviceMode(DEVICE_MODE_DISABLED),
         mSurfaceOrientation(-1), mSurfaceWidth(-1), mSurfaceHeight(-1) {
 	  mHWRotation = DISPLAY_ORIENTATION_0;
 }
@@ -2704,6 +2733,7 @@ void TouchInputMapper::configureSurface(nsecs_t when, bool* outResetNeeded) {
         }
     }
 
+    if(!mPadmouseStatus){
             char property[PROPERTY_VALUE_MAX];
             if (property_get("ro.sf.hwrotation", property, NULL) > 0) {
                 mHWRotation = atoi(property) / 90;
@@ -2713,6 +2743,10 @@ void TouchInputMapper::configureSurface(nsecs_t when, bool* outResetNeeded) {
                     mAssociatedDisplayHeight = tmp;
                 }
             }
+    } else {
+	    mAssociatedDisplayOrientation = DISPLAY_ORIENTATION_0;
+	    mHWRotation = DISPLAY_ORIENTATION_0;
+    }
 
     // Configure dimensions.
     int32_t width, height, orientation;
@@ -5276,6 +5310,57 @@ void TouchInputMapper::fadePointer() {
     if (mPointerController != NULL) {
         mPointerController->fade(PointerControllerInterface::TRANSITION_GRADUAL);
     }
+}
+
+void TouchInputMapper::setTvOutStatus(bool enabled){
+    bool padmouseStatus = mPadmouseStatus;
+    if( mTvOutStatus != enabled){
+        mTvOutStatus = enabled;
+        String8 padmouseString;
+        if(mTvOutStatus){
+            if ( !getDevice()->getConfiguration().tryGetProperty(String8("touch.tvout.padmouse"),
+                 padmouseString) || padmouseString == "true" ) {
+                    mParameters.deviceType = Parameters::DEVICE_TYPE_POINTER;
+                    padmouseStatus = true;
+                    LOGW(" tvout touch screen set to padmouse mode ");
+            }
+        }
+        else if(mPadmouseStatus){
+            configureParameters();
+            padmouseStatus = false;
+        }
+
+        if(mPadmouseStatus != padmouseStatus){
+            mPadmouseStatus = padmouseStatus;
+            nsecs_t now = systemTime(SYSTEM_TIME_MONOTONIC);
+            bool outReset = true;
+            configureSurface(now, &outReset);
+            reset(now);
+        }
+    }
+    
+    // dual display
+    char prop_dual[PROPERTY_VALUE_MAX];
+    if (property_get("ro.vout.dualdisplay2", prop_dual, "false")
+        && (strcmp(prop_dual, "true") == 0)) {
+        int fd_dmode = -1;
+        memset(g_dmode_str,0,32);	
+        if((fd_dmode = open("/sys/class/display/mode", O_RDONLY)) >= 0) {
+            int ret_len = read(fd_dmode, g_dmode_str, sizeof(g_dmode_str));
+            close(fd_dmode);
+        } else {
+            LOGE("open /sys/class/display/mode.");
+    	}
+    	
+        int fd_daxis = -1;
+        memset(g_daxis_str,0,32);	
+        if((fd_daxis = open("/sys/class/display/axis", O_RDONLY)) >= 0) {            
+            int ret_len = read(fd_daxis, g_daxis_str, sizeof(g_daxis_str));
+            close(fd_daxis);
+        } else {
+            LOGE("open /sys/class/display/mode.");
+    	}                    	   
+    } 
 }
 
 void TouchInputMapper::unfadePointer(PointerControllerInterface::Transition transition) {
