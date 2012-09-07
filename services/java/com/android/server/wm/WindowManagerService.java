@@ -329,17 +329,12 @@ public class WindowManagerService extends IWindowManager.Stub
                  mTVOutOn 
                  	= intent.getBooleanExtra(WindowManagerPolicy.EXTRA_HDMI_PLUGGED_STATE, false);
                  Slog.i("WindowManagerService ", "TvOut Intent receiver, tvout status="+ mTVOutOn);
-                 /*if (SystemProperties.getBoolean("ro.vout.dualdisplay", false)
+                 if (SystemProperties.getBoolean("ro.vout.dualdisplay", false)
                     || SystemProperties.getBoolean("ro.vout.dualdisplay2", false)) {
-                    if (Settings.System.getInt(mContext.getContentResolver(),
-                            Settings.System.HDMI_DUAL_DISP, 1) == 1) {    
                         mInputManager.setTvOutStatus(false);
-                    } else {
-                        mInputManager.setTvOutStatus(mTVOutOn); 
-                    }
                  } else {                    
                     mInputManager.setTvOutStatus(mTVOutOn);
-                 }*/
+                 }
             }
         }
     };

@@ -266,6 +266,9 @@ public:
     /* Called by the heatbeat to ensures that the reader has not deadlocked. */
     virtual void monitor() = 0;
 
+    /* Set TV Out Status */
+    virtual void setTvOutStatus(bool enabled) = 0;
+
     /* Runs a single iteration of the processing loop.
      * Nominally reads and processes one incoming message from the EventHub.
      *
@@ -365,6 +368,8 @@ public:
             size_t numCodes, const int32_t* keyCodes, uint8_t* outFlags);
 
     virtual void requestRefreshConfiguration(uint32_t changes);
+    
+    virtual void setTvOutStatus(bool enabled);
 
     virtual void vibrate(int32_t deviceId, const nsecs_t* pattern, size_t patternSize,
             ssize_t repeat, int32_t token);
@@ -509,6 +514,8 @@ public:
     void bumpGeneration();
 
     void notifyReset(nsecs_t when);
+    
+    void setTvOutStatus(bool enabled);
 
     inline const PropertyMap& getConfiguration() { return mConfiguration; }
     inline EventHubInterface* getEventHub() { return mContext->getEventHub(); }
@@ -901,6 +908,8 @@ public:
     virtual int32_t getMetaState();
 
     virtual void fadePointer();
+    
+    virtual void setTvOutStatus(bool enabled);
 
 protected:
     InputDevice* mDevice;
@@ -1109,6 +1118,7 @@ public:
             const int32_t* keyCodes, uint8_t* outFlags);
 
     virtual void fadePointer();
+    void setTvOutStatus(bool enabled);
     virtual void timeoutExpired(nsecs_t when);
 
 protected:
@@ -1134,6 +1144,12 @@ protected:
 
     // Input sources and device mode.
     uint32_t mSource;
+
+    // Tv out status
+    bool mTvOutStatus;
+
+    // Padmouse status
+    bool mPadmouseStatus;
 
     enum DeviceMode {
         DEVICE_MODE_DISABLED, // input is disabled
