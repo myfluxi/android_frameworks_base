@@ -2711,6 +2711,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 // and mTopIsFullscreen is that that mTopIsFullscreen is set only if the window
                 // has the FLAG_FULLSCREEN set.  Not sure if there is another way that to be the
                 // case though.
+/*
                 if (topIsFullscreen) {
                     if (mStatusBarCanHide ||
                         (((mFocusedWindow != null) && (mFocusedWindow.getSystemUiVisibility() & View.SYSTEM_UI_FLAG_LOW_PROFILE) == 1) &&
@@ -2739,6 +2740,24 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     }
                 } else {
                     if (DEBUG_LAYOUT) Log.v(TAG, "** SHOWING status bar: top is not fullscreen");
+                    if (mStatusBar.showLw(true)) changes |= FINISH_LAYOUT_REDO_LAYOUT;
+                }
+*/
+		if  (Settings.System.getInt(mContext.getContentResolver(),Settings.System.COMBINED_BAR_AUTO_HIDE, 0) == 1) {
+                       
+                        if (mStatusBar.hideLw(true)) {
+                            changes |= FINISH_LAYOUT_REDO_LAYOUT;
+
+                            mHandler.post(new Runnable() { public void run() {
+                                if (mStatusBarService != null) {
+                                    try {
+                                        mStatusBarService.collapse();
+                                    } catch (RemoteException ex) {}
+                                }
+                            }});
+                        }		
+                } else {
+                    if (DEBUG_LAYOUT) Log.v(TAG, "Showing status bar: top is not fullscreen");
                     if (mStatusBar.showLw(true)) changes |= FINISH_LAYOUT_REDO_LAYOUT;
                 }
             }
