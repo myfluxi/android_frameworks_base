@@ -243,16 +243,6 @@ class WiredAccessoryObserver extends UEventObserver {
         }
     }
 
-    private synchronized final void updateHdmiState(int state)
-    {
-    	//if (LOG) Slog.v(TAG, "updateHdmiState, state = " + state);  
-        switchState = ((mHeadsetState & (BIT_HEADSET|BIT_HEADSET_NO_MIC|
-                                         BIT_USB_HEADSET_DGTL|BIT_USB_HEADSET_ANLG)) |
-                       ((state == 1) ? BIT_HDMI_AUDIO : 0));
-       
-        update("hdmi", switchState);
-    }
-
     private synchronized final void init() {
         char[] buffer = new char[1024];
         mPrevHeadsetState = mHeadsetState;
