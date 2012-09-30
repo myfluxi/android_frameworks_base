@@ -547,7 +547,8 @@ public class PhoneStatusBar extends BaseStatusBar {
                 computeDateViewWidth();
             }
         });
-        mClockView = (Clock)mStatusBarWindow.findViewById(R.id.clock);
+
+        showClock(true);
         mClockView.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -562,6 +563,7 @@ public class PhoneStatusBar extends BaseStatusBar {
                 computeDateViewWidth();
             }
         });
+
         mSettingsButton = mStatusBarWindow.findViewById(R.id.settings_button);
         mSettingsButton.setOnClickListener(mSettingsButtonListener);
         mRotationButton = (RotationToggle) mStatusBarWindow.findViewById(R.id.rotation_lock_button);
@@ -1194,23 +1196,22 @@ public class PhoneStatusBar extends BaseStatusBar {
     @Override
     public void showClock(boolean show) {
         if (mStatusBarView == null) return;
+
+        if(mClockView != null) {
+            mClockView.setVisibility(View.GONE);
+        }
+
         ContentResolver resolver = mContext.getContentResolver();
-        View clock = mStatusBarView.findViewById(R.id.clock);
-        View ctClock = mStatusBarView.findViewById(R.id.center_clock);
-        mShowClock = (Settings.System.getInt(resolver,
-                Settings.System.STATUS_BAR_CLOCK, 1) == 1);
-        boolean centerClock = Settings.System.getInt(mContext.getContentResolver(),
+
+        boolean centerClock = Settings.System.getInt(resolver,
                 Settings.System.STATUS_BAR_CENTER_CLOCK, 0) == 1;
 
-        if(clock != null && ctClock != null){
-            if(centerClock){
-                clock.setVisibility(View.GONE);
-                ctClock.setVisibility(show ? (mShowClock ? View.VISIBLE : View.GONE) : View.GONE);
-            } else{
-                ctClock.setVisibility(View.GONE);
-                clock.setVisibility(show ? (mShowClock ? View.VISIBLE : View.GONE) : View.GONE);
-            }
-        }
+        mShowClock = (Settings.System.getInt(resolver,
+                Settings.System.STATUS_BAR_CLOCK, 1) == 1);
+
+        mClockView = centerClock ? (Clock) mStatusBarView.findViewById(R.id.center_clock) :
+                (Clock) mStatusBarWindow.findViewById(R.id.clock);
+        mClockView.setVisibility(show ? (mShowClock ? View.VISIBLE : View.GONE) : View.GONE);
     }
 
     /**
@@ -1966,8 +1967,6 @@ public class PhoneStatusBar extends BaseStatusBar {
             final View signalText = mStatusBarView.findViewById(R.id.signal_cluster_text);
             final View battery = mStatusBarView.findViewById(R.id.battery);
             final View batteryText = mStatusBarView.findViewById(R.id.battery_text);
-            final View clock = mStatusBarView.findViewById(R.id.clock);
-            final View ctClock = mStatusBarView.findViewById(R.id.center_clock);
 
             mLightsOutAnimation = new AnimatorSet();
             mLightsOutAnimation.playTogether(
@@ -1977,8 +1976,6 @@ public class PhoneStatusBar extends BaseStatusBar {
                     ObjectAnimator.ofFloat(signalText, View.ALPHA, 0),
                     ObjectAnimator.ofFloat(battery, View.ALPHA, 0.5f),
                     ObjectAnimator.ofFloat(batteryText, View.ALPHA, 0),
-                    ObjectAnimator.ofFloat(clock, View.ALPHA, 0.5f),
-                    ObjectAnimator.ofFloat(ctClock, View.ALPHA, 0.5f),
                     ObjectAnimator.ofFloat(mClockView, View.ALPHA, 0.5f)
                 );
             mLightsOutAnimation.setDuration(750);
@@ -1991,8 +1988,6 @@ public class PhoneStatusBar extends BaseStatusBar {
                     ObjectAnimator.ofFloat(signalText, View.ALPHA, 1),
                     ObjectAnimator.ofFloat(battery, View.ALPHA, 1),
                     ObjectAnimator.ofFloat(batteryText, View.ALPHA, 1),
-                    ObjectAnimator.ofFloat(clock, View.ALPHA, 1),
-                    ObjectAnimator.ofFloat(ctClock, View.ALPHA, 1),
                     ObjectAnimator.ofFloat(mClockView, View.ALPHA, 1)
 
                 );
@@ -2632,6 +2627,7 @@ public class PhoneStatusBar extends BaseStatusBar {
                 (mCurrentTheme == null || !mCurrentTheme.equals(newTheme))) {
             mCurrentTheme = (CustomTheme)newTheme.clone();
             recreateStatusBar();
+            setStatusBarParams(mStatusBarView);
         } else {
 
             if (mClearButton instanceof TextView) {
