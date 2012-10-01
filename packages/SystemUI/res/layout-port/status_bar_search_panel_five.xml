@@ -44,7 +44,7 @@
                 android:id="@+id/glow_pad_view"
                 android:orientation="horizontal"
                 android:layout_width="wrap_content"
-                android:layout_height="300dip"
+                android:layout_height="320dip"
                 android:layout_alignParentBottom="true"
                 android:layout_gravity="bottom|center_horizontal"
                 android:gravity="top|center_horizontal"

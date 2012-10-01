@@ -1637,6 +1637,13 @@ public final class Settings {
         public static final String MODE_TABLET_UI = "mode_tabletui";
 
         /**
+         * User interface mode. This is used to change from singlepane mode forcing it to
+         * Change into multipane mode. Default is disabled. 
+         */
+        public static final String FORCE_DUAL_PANEL = "force_dualpanel";
+
+
+        /**
          * Determines which streams are affected by ringer mode changes. The
          * stream type's bit should be set to 1 if it should be muted when going
          * into an inaudible ringer mode.
@@ -2103,6 +2110,13 @@ public final class Settings {
          * @hide
          */
         public static final String SHOW_TOUCHES = "show_touches";
+
+        /**
+         * The keylayout that will be used by EventHub instead of the default
+         * one.
+         * @hide
+         */
+        public static final String KEYLAYOUT_OVERRIDES = "keylayout";
 
         /**
          * Log raw orientation data from {@link WindowOrientationListener} for use with the
