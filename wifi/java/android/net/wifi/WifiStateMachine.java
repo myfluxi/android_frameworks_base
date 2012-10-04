@@ -1956,12 +1956,12 @@ public class WifiStateMachine extends StateMachine {
                     mSuspendWakeLock.release();
                     break;
                 case WifiMonitor.DRIVER_HUNG_EVENT:
-                    if (isScreenOn()) {
+                    //if (isScreenOn()) {
                         acquireHungLock();
                         setWifiEnabled(false);
                         setWifiEnabled(true);
                         releaseHungLock();
-                    }
+                    //}
                     break;
                 case WifiManager.CONNECT_NETWORK:
                     replyToMessage(message, WifiManager.CONNECT_NETWORK_FAILED,
@@ -2051,6 +2051,9 @@ public class WifiStateMachine extends StateMachine {
             new Thread(new Runnable() {
                 public void run() {
                     mWakeLock.acquire();
+		    if (!isScreenOn()) {
+			acquireShutdownLock();
+		    }
                     //enabling state
                     switch(message.arg1) {
                         case WIFI_STATE_ENABLING:
@@ -2408,10 +2411,10 @@ public class WifiStateMachine extends StateMachine {
                     acquireHungLock();
                     mWifiNative.killSupplicant();
                     mWifiNative.closeSupplicantConnection();
-                    if (isScreenOn()) {
+                    //if (isScreenOn()) {
                         setWifiEnabled(false);
-                        setWifiEnabled(true);     
-                    }  
+                        setWifiEnabled(true);
+                    //}  
                     mNetworkInfo.setIsAvailable(false);
                     handleNetworkDisconnect();
                     sendSupplicantConnectionChangedBroadcast(false);
@@ -2776,14 +2779,17 @@ public class WifiStateMachine extends StateMachine {
                         sendMessage(obtainMessage(CMD_DELAYED_STOP_DRIVER, mDelayedStopCounter, 0));
                     } else {
                         /* send regular delayed shut down */
-                        Intent driverStopIntent = new Intent(ACTION_DELAYED_DRIVER_STOP, null);
+                        /*Intent driverStopIntent = new Intent(ACTION_DELAYED_DRIVER_STOP, null);
                         driverStopIntent.putExtra(DELAYED_STOP_COUNTER, mDelayedStopCounter);
                         mDriverStopIntent = PendingIntent.getBroadcast(mContext,
                                 DRIVER_STOP_REQUEST, driverStopIntent,
                                 PendingIntent.FLAG_UPDATE_CURRENT);
 
                         mAlarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()
-                                + 0, mDriverStopIntent);
+                                + mDriverStopDelayMs, mDriverStopIntent);
+                        mAlarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()
+                                + 0, mDriverStopIntent);*/
+			sendMessage(obtainMessage(CMD_DELAYED_STOP_DRIVER, mDelayedStopCounter, 0));
                     }
                     break;
                 case CMD_START_DRIVER:
@@ -2805,6 +2811,7 @@ public class WifiStateMachine extends StateMachine {
                     mWifiNative.stopDriver();
                     transitionTo(mDriverStoppingState);
                     mWakeLock.release();
+		    setWifiEnabled(false);
 		    releaseShutdownLock();
                     break;
                 case CMD_START_PACKET_FILTERING:
