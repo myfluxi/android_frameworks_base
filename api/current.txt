@@ -27636,7 +27636,7 @@ package android.widget {
     method public android.widget.TextView getText2();
   }
 
-  public class VideoView extends android.view.SurfaceView implements android.widget.MediaController.MediaPlayerControl {
+  public class VideoView extends android.view.SurfaceView implements android.widget.MediaController.MediaPlayerControl android.view.View.OnLayoutChangeListener {
     ctor public VideoView(android.content.Context);
     ctor public VideoView(android.content.Context, android.util.AttributeSet);
     ctor public VideoView(android.content.Context, android.util.AttributeSet, int);
@@ -27647,6 +27647,7 @@ package android.widget {
     method public int getCurrentPosition();
     method public int getDuration();
     method public boolean isPlaying();
+    method public void onLayoutChange(android.view.View, int, int, int, int, int, int, int, int);
     method public void pause();
     method public int resolveAdjustedSize(int, int);
     method public void resume();
