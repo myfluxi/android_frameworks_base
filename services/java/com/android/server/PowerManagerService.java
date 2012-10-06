@@ -784,12 +784,16 @@ public class PowerManagerService extends IPowerManager.Stub
     }
 
     private void updateWakeLockLocked() {
-        if (mStayOnConditions != 0 && mBatteryService.isPowered(mStayOnConditions)) {
+	if (mBatteryService.isPowered()) {
             // keep the device on if we're plugged in and mStayOnWhilePluggedIn is set.
-            mStayOnWhilePluggedInScreenDimLock.acquire();
+	    if (mStayOnConditions != 0) {
+		mStayOnWhilePluggedInScreenDimLock.acquire();
+	    }
             mStayOnWhilePluggedInPartialLock.acquire();
         } else {
-            mStayOnWhilePluggedInScreenDimLock.release();
+	    if (mStayOnConditions != 0) {
+		mStayOnWhilePluggedInScreenDimLock.release();
+	    }
             mStayOnWhilePluggedInPartialLock.release();
         }
     }
