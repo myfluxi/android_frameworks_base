@@ -48,15 +48,7 @@
 
         <include layout="@layout/status_bar_expanded_header"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/notification_panel_header_height"
-            />
-
-        <com.android.systemui.statusbar.powerwidget.PowerWidget
-            android:id="@+id/exp_power_stat"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/notification_panel_widget_height"
-            android:layout_marginTop="44dip"
-        />
+            android:layout_height="@dimen/notification_panel_header_height"/>
 
         <ScrollView
             android:id="@+id/scroll"
@@ -64,14 +56,24 @@
             android:layout_height="match_parent"
             android:fadingEdge="none"
             android:overScrollMode="ifContentScrolls"
-            android:layout_marginTop="@dimen/notification_panel_header_and_widget"
+            android:layout_marginTop="@dimen/notification_panel_widget_padding_top"
             >
-            <com.android.systemui.statusbar.policy.NotificationRowLayout
-                android:id="@+id/latestItems"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                systemui:rowHeight="@dimen/notification_row_min_height"
-                />
+                android:orientation="vertical" >
+                <include layout="@layout/quick_toggles"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="5dp"
+                    android:layout_marginLeft="5dp" />
+                <com.android.systemui.statusbar.policy.NotificationRowLayout
+                    android:id="@+id/latestItems"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    systemui:rowHeight="@dimen/notification_row_min_height" />
+
+            </LinearLayout>
         </ScrollView>
     </FrameLayout>
 

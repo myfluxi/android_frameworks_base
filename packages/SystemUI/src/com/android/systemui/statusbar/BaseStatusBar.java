@@ -436,12 +436,6 @@ public abstract class BaseStatusBar extends SystemUI implements
     protected abstract WindowManager.LayoutParams getSearchLayoutParams(
             LayoutParams layoutParams);
 
-    protected void setStatusBarParams(View statusbarView){
-        int opacity = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.STATUS_BAR_TRANSPARENCY, 100);
-        statusbarView.getBackground().setAlpha(Math.round((opacity * 255) / 100));
-    }
-
     protected void updateRecentsPanel(int recentsResId) {
         // Recents Panel
         boolean visible = false;
@@ -1012,5 +1006,9 @@ public abstract class BaseStatusBar extends SystemUI implements
     public boolean inKeyguardRestrictedInputMode() {
         KeyguardManager km = (KeyguardManager) mContext.getSystemService(Context.KEYGUARD_SERVICE);
         return km.inKeyguardRestrictedInputMode();
+    }
+
+    public boolean isTablet() {
+        return false;
     }
 }

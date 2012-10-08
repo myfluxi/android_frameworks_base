@@ -253,12 +253,7 @@ public class TabletStatusBar extends BaseStatusBar implements
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                     | WindowManager.LayoutParams.FLAG_TOUCHABLE_WHEN_WAKING
                     | WindowManager.LayoutParams.FLAG_SPLIT_TOUCH,
-                PixelFormat.TRANSLUCENT);
-
-        // this will allow the navbar to run in an overlay on devices that support this
-        if (ActivityManager.isHighEndGfx(mDisplay)) {
-            lp.flags |= WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
-        }
+                PixelFormat.RGB_565);
 
         lp.gravity = getStatusBarGravity();
         lp.setTitle("SystemBar");
@@ -283,14 +278,11 @@ public class TabletStatusBar extends BaseStatusBar implements
                     Settings.System.NAV_BAR_STATUS), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.NAV_BAR_TABUI_MENU), false, this);
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.STATUS_BAR_TRANSPARENCY), false, this);
         }
 
         @Override
         public void onChange(boolean selfChange) {
-            setStatusBarParams(mStatusBarView);
-            loadDimens();
+            loadResources();
             recreateStatusBar();
         }
     }
@@ -491,9 +483,8 @@ public class TabletStatusBar extends BaseStatusBar implements
                 (mCurrentTheme == null || !mCurrentTheme.equals(newTheme))) {
             mCurrentTheme = (CustomTheme)newTheme.clone();
             recreateStatusBar();
-            setStatusBarParams(mStatusBarView);
         }
-        loadDimens();
+        loadResources();
         mNotificationPanelParams.height = getNotificationPanelHeight();
         WindowManagerImpl.getDefault().updateViewLayout(mNotificationPanel,
                 mNotificationPanelParams);
@@ -503,7 +494,7 @@ public class TabletStatusBar extends BaseStatusBar implements
         updateSearchPanel();
     }
 
-    protected void loadDimens() {
+    protected void loadResources() {
         final Resources res = mContext.getResources();
 
         mNaturalBarHeight = res.getDimensionPixelSize(
@@ -571,6 +562,9 @@ public class TabletStatusBar extends BaseStatusBar implements
     protected View makeStatusBarView() {
         final Context context = mContext;
 
+        mShowSearchHoldoff = mContext.getResources().getInteger(
+                R.integer.config_show_search_delay);
+
         mWindowManager = IWindowManager.Stub.asInterface(
                 ServiceManager.getService(Context.WINDOW_SERVICE));
 
@@ -579,13 +573,11 @@ public class TabletStatusBar extends BaseStatusBar implements
             mCurrentTheme = (CustomTheme)currentTheme.clone();
         }
 
-        loadDimens();
+        loadResources();
 
         final TabletStatusBarView sb = (TabletStatusBarView)View.inflate(
                 context, R.layout.system_bar, null);
         mStatusBarView = sb;
-
-        setStatusBarParams(mStatusBarView);
 
         sb.setHandler(mHandler);
 
@@ -613,7 +605,7 @@ public class TabletStatusBar extends BaseStatusBar implements
         // The icons
         mLocationController = new LocationController(mContext); // will post a notification
 
-        // watch the PREF_DO_NOT_DISTURB and convert to appropriate disable() calls
+        // watch DO_NOT_DISTURB and convert to appropriate disable() calls
         mDoNotDisturb = new DoNotDisturb(mContext);
 
         mBatteryController = new BatteryController(mContext);
@@ -925,9 +917,8 @@ public class TabletStatusBar extends BaseStatusBar implements
                             if (mNotificationDNDMode) {
                                 copy.content.setOnClickListener(new View.OnClickListener() {
                                     public void onClick(View v) {
-                                        SharedPreferences.Editor editor = Prefs.edit(mContext);
-                                        editor.putBoolean(Prefs.DO_NOT_DISTURB_PREF, false);
-                                        editor.apply();
+                                        Settings.System.putInt(mContext.getContentResolver(),
+                                                Settings.System.STATUS_BAR_DONOTDISTURB, 0);
                                         animateCollapse();
                                         visibilityChanged(false);
                                     }
@@ -1104,8 +1095,9 @@ public class TabletStatusBar extends BaseStatusBar implements
             }
         }
         if ((diff & StatusBarManager.DISABLE_NOTIFICATION_ICONS) != 0) {
-            mNotificationDNDMode = Prefs.read(mContext)
-                        .getBoolean(Prefs.DO_NOT_DISTURB_PREF, Prefs.DO_NOT_DISTURB_DEFAULT);
+            mNotificationDNDMode =  Settings.System.getInt(
+                    mContext.getContentResolver(),
+                    Settings.System.STATUS_BAR_DONOTDISTURB, 0) == 1;
 
             if ((state & StatusBarManager.DISABLE_NOTIFICATION_ICONS) != 0) {
                 Slog.i(TAG, "DISABLE_NOTIFICATION_ICONS: yes" + (mNotificationDNDMode?" (DND)":""));

@@ -2342,47 +2342,40 @@ public final class Settings {
         public static final String POINTER_SPEED = "pointer_speed";
 
         /**
-         * Use the Notification Power Widget? (Who wouldn't!)
-         *
+         * Enable toggles on statusbar
          * @hide
          */
-        public static final String EXPANDED_VIEW_WIDGET = "expanded_view_widget";
+        public static final String STATUSBAR_TOGGLES_ENABLE = "statusbar_toggles_enable";
 
         /**
-         * Whether to hide the notification screen after clicking on a widget
-         * button
-         *
+         * Button-like toggles style (instead of switches)
          * @hide
          */
-        public static final String EXPANDED_HIDE_ONCHANGE = "expanded_hide_onchange";
+        public static final String STATUSBAR_TOGGLES_USE_BUTTONS = "statusbar_toggles_use_buttons";
 
         /**
-         * Hide scroll bar in power widget
-         *
+         * Toggles to use on statusbar
          * @hide
          */
-        public static final String EXPANDED_HIDE_SCROLLBAR = "expanded_hide_scrollbar";
+        public static final String STATUSBAR_TOGGLES = "statusbar_toggles";
 
         /**
-         * Haptic feedback in power widget
-         *
+         * Style of the toggles
          * @hide
          */
-        public static final String EXPANDED_HAPTIC_FEEDBACK = "expanded_haptic_feedback";
+        public static final String STATUSBAR_TOGGLES_STYLE = "statusbar_toggles_style";
 
         /**
-         * Widget Buttons to Use
-         *
+         * Whether to show brightness on toggles view
          * @hide
          */
-        public static final String WIDGET_BUTTONS = "expanded_widget_buttons";
+        public static final String STATUSBAR_TOGGLES_SHOW_BRIGHTNESS = "statusbar_toggles_show_brightness";
 
         /**
-         * Widget Buttons to Use - Tablet
-         *
+         * Statusbar layout
          * @hide
          */
-        public static final String WIDGET_BUTTONS_TABLET = "expanded_widget_buttons_tablet";
+        public static final String STATUS_BAR_LAYOUT = "statusbar_layout";
 
         /**
          * Navigation bar, whether to show or hide
@@ -2484,13 +2477,6 @@ public final class Settings {
         public static final String STATUS_BAR_AM_PM = "status_bar_am_pm";
 
         /**
-         * Statusbar transparency value
-         * from 0% to 100%
-         * @hide
-         */
-        public static final String STATUS_BAR_TRANSPARENCY = "status_bar_transparency";
-
-        /**
          * Display style of the status bar battery information
          * 0: Display the stock battery information
          * 1: Display cm battery percentage implementation / dont show stock icon
@@ -2547,6 +2533,11 @@ public final class Settings {
          */
         public static final String STATUSBAR_STATE = "statusbar_state";
 
+        /**
+         * Statusbar do not disturb
+         * @hide
+         */
+        public static final String STATUS_BAR_DONOTDISTURB = "statusbar_donotdisturb";
 
         /**
          * Whether to use a separate delay for "slide to unlock" and security
@@ -3218,6 +3209,7 @@ public final class Settings {
             MOVED_TO_LOCK_SETTINGS.add(Secure.LOCK_PATTERN_TACTILE_FEEDBACK_ENABLED);
             MOVED_TO_LOCK_SETTINGS.add(Secure.LOCK_PATTERN_SIZE);
             MOVED_TO_LOCK_SETTINGS.add(Secure.LOCK_BEFORE_UNLOCK);
+            MOVED_TO_LOCK_SETTINGS.add(Secure.LOCK_SYNC_ENCRYPTION_PASSWORD);
         }
 
         /**
@@ -3743,6 +3735,13 @@ public final class Settings {
          */
         public static final String LOCK_BEFORE_UNLOCK =
             "lock_before_unlock";
+
+        /**
+         * Whether to sync encryption password with lock screen token
+         * @hide
+         */
+        public static final String LOCK_SYNC_ENCRYPTION_PASSWORD =
+            "lock_sync_encryption_password";
 
         /**
          * The saved value for WindowManagerService.setForcedDisplaySize().

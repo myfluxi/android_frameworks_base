@@ -108,6 +108,8 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
         mClearButton = findViewById(R.id.clear_all_button);
         mClearButton.setOnClickListener(mClearButtonListener);
 
+        addSettingsView();
+
         mShowing = false;
     }
 
@@ -135,6 +137,9 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
     public void show(boolean show, boolean animate) {
         if (animate) {
             if (mShowing != show) {
+                if (mNotificationCount == 0) {
+                    swapPanels();
+                }
                 mShowing = show;
                 if (show) {
                     setVisibility(View.VISIBLE);
@@ -179,7 +184,9 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
         super.onVisibilityChanged(v, vis);
         // when we hide, put back the notifications
         if (vis != View.VISIBLE) {
-            if (mSettingsView != null) removeSettingsView();
+            if(mSettingsView.getVisibility() != View.GONE) {
+                showSettingsView(false);
+            }
             mNotificationScroller.setVisibility(View.VISIBLE);
             mNotificationScroller.setAlpha(1f);
             mNotificationScroller.scrollTo(0, 0);
@@ -234,8 +241,7 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
 
     public void swapPanels() {
         final View toShow, toHide;
-        if (mSettingsView == null) {
-            addSettingsView();
+        if (mSettingsView.getVisibility() == View.GONE) {
             toShow = mSettingsView;
             toHide = mNotificationScroller;
         } else {
@@ -248,18 +254,13 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
             @Override
             public void onAnimationEnd(Animator _a) {
                 toHide.setVisibility(View.GONE);
-                if (toShow != null) {
-                    toShow.setVisibility(View.VISIBLE);
-                    if (toShow == mSettingsView || mNotificationCount > 0) {
-                        ObjectAnimator.ofFloat(toShow, "alpha", 0f, 1f)
-                                .setDuration(PANEL_FADE_DURATION)
-                                .start();
-                    }
-
-                    if (toHide == mSettingsView) {
-                        removeSettingsView();
-                    }
+                toShow.setVisibility(View.VISIBLE);
+                if (toShow == mSettingsView || mNotificationCount > 0) {
+                    ObjectAnimator.ofFloat(toShow, "alpha", 0f, 1f)
+                            .setDuration(PANEL_FADE_DURATION)
+                            .start();
                 }
+
                 updateClearButton();
                 updatePanelModeButtons();
             }
@@ -282,7 +283,8 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
     }
 
     public void updatePanelModeButtons() {
-        final boolean settingsVisible = (mSettingsView != null);
+        final boolean settingsVisible = mSettingsView.getVisibility() == View.VISIBLE;
+
         mSettingsButton.setVisibility(!settingsVisible && mSettingsButton.isEnabled() ? View.VISIBLE : View.GONE);
         mNotificationButton.setVisibility(settingsVisible ? View.VISIBLE : View.GONE);
     }
@@ -290,7 +292,7 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
     public boolean isInContentArea(int x, int y) {
         mContentArea.left = mContentFrame.getLeft() + mContentFrame.getPaddingLeft();
         mContentArea.top = mContentFrame.getTop() + mContentFrame.getPaddingTop()
-            + (int)mContentParent.getTranslationY(); // account for any adjustment
+                + (int)mContentParent.getTranslationY(); // account for any adjustment
         mContentArea.right = mContentFrame.getRight() - mContentFrame.getPaddingRight();
         mContentArea.bottom = mContentFrame.getBottom() - mContentFrame.getPaddingBottom();
 
@@ -298,11 +300,8 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
         return mContentArea.contains(x, y);
     }
 
-    void removeSettingsView() {
-        if (mSettingsView != null) {
-            mContentFrame.removeView(mSettingsView);
-            mSettingsView = null;
-        }
+    void showSettingsView(boolean show) {
+        mSettingsView.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
     // NB: it will be invisible until you show it
@@ -428,7 +427,7 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
     public void setSettingsEnabled(boolean settingsEnabled) {
         if (mSettingsButton != null) {
             mSettingsButton.setEnabled(settingsEnabled);
-            mSettingsButton.setVisibility(settingsEnabled ? View.VISIBLE : View.GONE);
+            updatePanelModeButtons();
         }
     }
 
